@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { providerChat } from '../../harness'
-import { PROVIDERS, type Settings, type ThemeMode } from '../../lib/store'
+import { fetchModels } from '../../lib/models'
+import { PROVIDERS, type ProviderId, type Settings, type ThemeMode } from '../../lib/store'
 
-type TestState =
+type Status =
   | { state: 'idle' }
-  | { state: 'testing' }
-  | { state: 'ok' }
+  | { state: 'busy' }
+  | { state: 'ok'; msg?: string }
   | { state: 'fail'; msg: string }
 
 export function SettingsView({
@@ -17,21 +18,44 @@ export function SettingsView({
   onSave: (next: Settings) => void
   onSetTheme: (mode: ThemeMode) => void
 }) {
-  const [provider, setProvider] = useState(settings.provider)
-  const [model, setModel] = useState(settings.model)
+  const [provider, setProvider] = useState<ProviderId>(settings.provider)
   const [apiKey, setApiKey] = useState(settings.apiKey)
   const [keyMode, setKeyMode] = useState<'get' | 'manual'>(settings.apiKey ? 'manual' : 'get')
-  const [test, setTest] = useState<TestState>({ state: 'idle' })
+  const [model, setModel] = useState(settings.model)
+  const [models, setModels] = useState<string[]>([])
+  const [fetchStatus, setFetchStatus] = useState<Status>({ state: 'idle' })
+  const [test, setTest] = useState<Status>({ state: 'idle' })
   const [saved, setSaved] = useState(false)
 
   const meta = PROVIDERS.find((p) => p.id === provider)!
+  const modelOptions = models.length ? models : [model || meta.defaultModel]
 
-  function pickProvider(id: typeof provider) {
+  function pickProvider(id: ProviderId) {
     const m = PROVIDERS.find((p) => p.id === id)!
     if (!m.enabled) return
     setProvider(id)
     setModel(m.defaultModel)
+    setModels([])
+    setFetchStatus({ state: 'idle' })
     setTest({ state: 'idle' })
+  }
+
+  // Step after the key: pull the model list (also validates the key).
+  async function getModels() {
+    if (!apiKey.trim()) {
+      setFetchStatus({ state: 'fail', msg: 'Enter an API key first.' })
+      return
+    }
+    setFetchStatus({ state: 'busy' })
+    try {
+      const ids = await fetchModels(provider, apiKey)
+      setModels(ids)
+      setModel((cur) => (ids.includes(cur) ? cur : ids[0]))
+      setFetchStatus({ state: 'ok', msg: `${ids.length} models` })
+    } catch (e) {
+      setModels([])
+      setFetchStatus({ state: 'fail', msg: String(e instanceof Error ? e.message : e) })
+    }
   }
 
   async function runTest() {
@@ -39,7 +63,7 @@ export function SettingsView({
       setTest({ state: 'fail', msg: 'Enter an API key first.' })
       return
     }
-    setTest({ state: 'testing' })
+    setTest({ state: 'busy' })
     try {
       await providerChat({
         apiKey: apiKey.trim(),
@@ -82,16 +106,7 @@ export function SettingsView({
         </div>
       </section>
 
-      <section className="field">
-        <label className="field__label">Model</label>
-        <input
-          className="input"
-          value={model}
-          onChange={(e) => setModel(e.target.value)}
-          spellCheck={false}
-        />
-      </section>
-
+      {/* 1. API key first */}
       <section className="field">
         <div className="field__row">
           <label className="field__label">API key</label>
@@ -120,22 +135,41 @@ export function SettingsView({
         <input
           className="input"
           type="password"
-          placeholder={provider === 'anthropic' ? 'sk-ant-…' : 'API key'}
+          placeholder={provider === 'anthropic' ? 'sk-ant-…' : 'sk-…'}
           value={apiKey}
           spellCheck={false}
           onChange={(e) => {
             setApiKey(e.target.value)
+            setFetchStatus({ state: 'idle' })
             setTest({ state: 'idle' })
+            setModels([])
           }}
         />
 
         <div className="field__actions">
-          <button className="btn" onClick={runTest} disabled={test.state === 'testing'}>
-            {test.state === 'testing' ? 'Testing…' : '测试'}
+          <button className="btn" onClick={getModels} disabled={fetchStatus.state === 'busy'}>
+            {fetchStatus.state === 'busy' ? 'Fetching…' : '获取模型列表'}
           </button>
-          {test.state === 'ok' && <span className="status status--ok">✓ key works</span>}
-          {test.state === 'fail' && <span className="status status--fail">✗ {test.msg}</span>}
+          {fetchStatus.state === 'ok' && <span className="status status--ok">✓ {fetchStatus.msg}</span>}
+          {fetchStatus.state === 'fail' && (
+            <span className="status status--fail">✗ {fetchStatus.msg}</span>
+          )}
         </div>
+      </section>
+
+      {/* 2. Model — chosen from the fetched list */}
+      <section className="field">
+        <label className="field__label">Model</label>
+        <select className="input" value={model} onChange={(e) => setModel(e.target.value)}>
+          {modelOptions.map((m) => (
+            <option key={m} value={m}>
+              {m}
+            </option>
+          ))}
+        </select>
+        {!models.length && (
+          <span className="field__note">Fetch the model list above, then pick one.</span>
+        )}
       </section>
 
       <section className="field">
@@ -160,6 +194,13 @@ export function SettingsView({
       </section>
 
       <div className="view__footer">
+        <div className="field__actions">
+          <button className="btn" onClick={runTest} disabled={test.state === 'busy'}>
+            {test.state === 'busy' ? 'Testing…' : '测试'}
+          </button>
+          {test.state === 'ok' && <span className="status status--ok">✓ works</span>}
+          {test.state === 'fail' && <span className="status status--fail">✗ {test.msg}</span>}
+        </div>
         <button className="btn btn--primary" onClick={save}>
           {saved ? 'Saved ✓' : '保存'}
         </button>

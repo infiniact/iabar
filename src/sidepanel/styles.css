@@ -138,6 +138,17 @@ body {
 .view__footer {
   margin-top: auto;
   padding-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.field__note {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+select.input {
+  appearance: none;
+  cursor: pointer;
 }
 .muted-copy {
   margin: 0;

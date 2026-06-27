@@ -16,11 +16,11 @@ authors = ["iabar contributors"]
 # The Rust here compiles to `wasm32-unknown-unknown` and is consumed by the
 # Chrome MV3 extension via wasm-bindgen. Heavy native concerns of the engine
 # (OS keychain, native TLS, shell/fs tools) are gated out on wasm and
-# replaced with browser-native backends — see ROADMAP.md.
+# replaced with browser-native backends — see docs/ROADMAP.md.
 [workspace.dependencies]
 # The AI agent engine crates, fetched from the private engine repo over git
 # (no local checkout / relative path). Each is pulled in only once its wasm
-# portability gate lands (see ROADMAP.md). Building requires git access to the
+# portability gate lands (see docs/ROADMAP.md). Building requires git access to the
 # private repo under its license (see LICENSING.md).
 iacoder-hooks = { git = "https://github.com/infiniact/iacoder.git", branch = "main" }
 # Wave A made this compile to wasm (pure types + traits; native I/O gated).

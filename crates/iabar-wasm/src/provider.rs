@@ -9,7 +9,7 @@
 //!
 //! Streaming is not yet wired (reqwest's wasm backend returns whole bodies);
 //! `chat` performs a non-streaming request and emits the result as a single
-//! `TextDelta` + `Usage` + `Stop` (see IABar ROADMAP, Wave C).
+//! `TextDelta` + `Usage` + `Stop` (see docs/ROADMAP.md, Wave C).
 
 use async_trait::async_trait;
 use futures::stream;

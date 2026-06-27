@@ -3,7 +3,7 @@
 //! This is the browser-side LLM path the IABar side panel calls. It mirrors
 //! the shape of the engine's provider (`Role` / `Message` / a chat request)
 //! so it drops into the harness once the provider trait's `Send` bounds are
-//! made target-conditional (see ROADMAP.md, Phase 3). For now it stands alone
+//! made target-conditional (see docs/ROADMAP.md, Phase 3). For now it stands alone
 //! and proves end-to-end browser → Claude works over the fetch backend.
 //!
 //! Networking note: extension pages may call `api.anthropic.com` directly when

@@ -6,7 +6,7 @@
 //! interpolation all run as real engine hook code inside the extension —
 //! no reimplementation. The native execution layer (shell/HTTP dispatch) is
 //! gated out on wasm and returns as the harness gains browser-native backends
-//! (see ROADMAP.md).
+//! (see docs/ROADMAP.md).
 
 use serde::Serialize;
 use wasm_bindgen::prelude::*;

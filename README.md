@@ -11,7 +11,7 @@ the harness in JS.
 
 > Status: **Phase 0 — foundation.** The Rust→wasm→extension pipeline is live
 > and runs real engine code (the hook subsystem). The full agent loop is
-> ported in stages — see [ROADMAP.md](./ROADMAP.md).
+> ported in stages (see the roadmap in the project's local design docs).
 
 ## Architecture
 
@@ -94,7 +94,6 @@ Load `dist/` once; @crxjs hot-reloads the extension on change.
 | `src/content/`           | Content script (page-context extraction)        |
 | `src/wasm/`              | wasm-pack output (generated; gitignored)        |
 | `manifest.config.ts`     | MV3 manifest (@crxjs `defineManifest`)          |
-| `ROADMAP.md`             | Staged plan to bring the full harness to wasm   |
 
 ## License
 

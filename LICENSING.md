@@ -18,7 +18,7 @@ redistribute it under MIT. This covers, and only covers:
 | `src/**` | TypeScript front-end — side panel, background SW, content script, `harness` |
 | `crates/iabar-wasm/src/**` | The **wasm-bindgen bridge source** (`lib.rs`, `provider.rs`, `anthropic.rs`) — iabar's own glue |
 | `manifest.config.ts`, `vite.config.ts`, `tsconfig*.json`, `package.json` | Build / packaging config |
-| `README.md`, `ROADMAP.md`, `MIGRATION.md`, `LICENSING.md` | Repo documentation (planning docs under `docs/` are kept local and not redistributed) |
+| `README.md`, `LICENSING.md` | Repo documentation. Planning/design docs under `docs/` — incl. `ROADMAP.md`, `MIGRATION.md`, PRD, ADRs — are kept local and not redistributed |
 
 SPDX for these files: `MIT`.
 

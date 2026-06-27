@@ -1,4 +1,4 @@
-// Typed front door to the iacoder wasm harness. Everything the UI touches in
+// Typed front door to the AI agent wasm harness. Everything the UI touches in
 // the wasm module goes through here so initialization happens exactly once and
 // the JS-side types stay in one place.
 
@@ -39,22 +39,22 @@ export function initHarness(): Promise<void> {
   return ready
 }
 
-/** iacoder hook-system version (the wasm crate version). */
+/** AI agent hook-system version (the wasm crate version). */
 export function harnessVersion(): string {
   return version()
 }
 
-/** All lifecycle events iacoder recognizes, straight from the harness. */
+/** All lifecycle events the engine recognizes, straight from the harness. */
 export function hookEvents(): string[] {
   return hook_events()
 }
 
-/** Whether `name` is a hook event iacoder recognizes. */
+/** Whether `name` is a hook event the engine recognizes. */
 export function isValidEvent(name: string): boolean {
   return is_valid_event(name)
 }
 
-/** Parse + validate a `[[hooks]]` TOML document with real iacoder code. */
+/** Parse + validate a `[[hooks]]` TOML document with real engine code. */
 export function validateHooks(tomlSrc: string): ValidateResult {
   return validate_hooks(tomlSrc) as ValidateResult
 }
@@ -95,7 +95,7 @@ export interface ProviderResult {
 }
 
 /**
- * Drive a turn through the real `iacoder_core::LlmProvider` trait
+ * Drive a turn through the real engine `LlmProvider` trait
  * (`AnthropicProvider::chat` → `ChatStream`). Same request shape as
  * {@link anthropicChat}, but every byte flows through the harness trait —
  * the Wave B/C path.

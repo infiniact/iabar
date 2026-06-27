@@ -6,23 +6,25 @@ members = ["crates/*"]
 edition = "2024"
 rust-version = "1.85"
 # iabar 壳(本仓自有源码,含 iabar-wasm 桥)按 MIT 授权。注意:编译产物
-# `iabar_wasm_bg.wasm` 内嵌专有 iacoder 引擎,该二进制不在 MIT 范围内——
+# `iabar_wasm_bg.wasm` 内嵌专有 AI agent 引擎,该二进制不在 MIT 范围内——
 # 许可边界见 LICENSING.md。
 license = "MIT"
 repository = "https://github.com/infiniact/iabar"
 authors = ["iabar contributors"]
 
-# `iabar` is the browser-extension front for the `iacoder` agent harness.
+# IABar is the browser-extension front for the AI agent harness.
 # The Rust here compiles to `wasm32-unknown-unknown` and is consumed by the
-# Chrome MV3 extension via wasm-bindgen. Heavy native concerns of iacoder
+# Chrome MV3 extension via wasm-bindgen. Heavy native concerns of the engine
 # (OS keychain, native TLS, shell/fs tools) are gated out on wasm and
 # replaced with browser-native backends — see ROADMAP.md.
 [workspace.dependencies]
-# Bridge to the sibling iacoder workspace via relative path. Each crate is
-# pulled in only once its wasm portability gate lands (see ROADMAP.md).
-iacoder-hooks = { path = "../iacoder/crates/iacoder-hooks" }
+# The AI agent engine crates, fetched from the private engine repo over git
+# (no local checkout / relative path). Each is pulled in only once its wasm
+# portability gate lands (see ROADMAP.md). Building requires git access to the
+# private repo under its license (see LICENSING.md).
+iacoder-hooks = { git = "https://github.com/infiniact/iacoder.git", branch = "main" }
 # Wave A made this compile to wasm (pure types + traits; native I/O gated).
-iacoder-core = { path = "../iacoder/crates/iacoder-core" }
+iacoder-core = { git = "https://github.com/infiniact/iacoder.git", branch = "main" }
 
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"

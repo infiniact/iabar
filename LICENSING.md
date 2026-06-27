@@ -29,7 +29,7 @@ The MIT grant in Zone 1 does not extend to any of the following:
 
 | Item | Status |
 | --- | --- |
-| The iacoder Rust crates (`iacoder-core`, `iacoder-hooks`, `iacoder-agent`, …) consumed by **path** from the **private** `../iacoder` repository | Proprietary; **source not included** in this repo; governed by iacoder's own license |
+| The iacoder Rust crates (`iacoder-core`, `iacoder-hooks`, `iacoder-agent`, …) consumed as a **git dependency** from the **private** engine repository | Proprietary; **source not included** in this repo; governed by iacoder's own license |
 | `crates/iabar-wasm` **as a compiled unit** (it statically links the engine) | The build output is a derivative of proprietary code |
 | `iabar_wasm_bg.wasm` and `src/wasm/**`, `dist/**/*.wasm` | **Compiled binary that embeds the iacoder engine** — proprietary artifact |
 

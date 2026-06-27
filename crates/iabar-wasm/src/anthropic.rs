@@ -1,7 +1,7 @@
 //! A real Anthropic Messages API client compiled to wasm.
 //!
-//! This is the browser-side LLM path the iabar side panel calls. It mirrors
-//! the shape of `iacoder_core::provider` (`Role` / `Message` / a chat request)
+//! This is the browser-side LLM path the IABar side panel calls. It mirrors
+//! the shape of the engine's provider (`Role` / `Message` / a chat request)
 //! so it drops into the harness once the provider trait's `Send` bounds are
 //! made target-conditional (see ROADMAP.md, Phase 3). For now it stands alone
 //! and proves end-to-end browser → Claude works over the fetch backend.
@@ -20,7 +20,7 @@ const API_VERSION: &str = "2023-06-01";
 const DEFAULT_MODEL: &str = "claude-opus-4-8";
 const DEFAULT_MAX_TOKENS: u32 = 4096;
 
-/// Conversation role. Matches `iacoder_core::provider::Role` so messages move
+/// Conversation role. Matches the engine's `provider::Role` so messages move
 /// across the boundary unchanged when the provider lands in the harness.
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]

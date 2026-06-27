@@ -6,7 +6,7 @@ import pkg from './package.json' with { type: 'json' }
 // script reads the active page so the harness has page context to work with.
 export default defineManifest({
   manifest_version: 3,
-  name: 'iabar — iacoder in your browser',
+  name: 'IABar — your AI agent in the browser',
   version: pkg.version,
   description: pkg.description,
 
@@ -15,7 +15,7 @@ export default defineManifest({
     default_path: 'src/sidepanel/index.html',
   },
   action: {
-    default_title: 'Open iabar',
+    default_title: 'Open IABar',
   },
   background: {
     service_worker: 'src/background/index.ts',
@@ -32,7 +32,7 @@ export default defineManifest({
   permissions: ['sidePanel', 'activeTab', 'scripting', 'storage'],
   host_permissions: ['<all_urls>'],
 
-  // 'wasm-unsafe-eval' is required to instantiate the iacoder wasm module in
+  // 'wasm-unsafe-eval' is required to instantiate the AI agent wasm module in
   // the side panel page.
   content_security_policy: {
     extension_pages:

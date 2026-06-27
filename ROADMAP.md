@@ -122,3 +122,11 @@ The agent's hands. Implement iacoder's tool traits with browser impls:
   regression (Phase 0 verified `iacoder-hooks` native still builds).
 - iabar depends on iacoder by **path**; no fork. Upstreamable gates only.
 - Keep `pnpm build` green at the end of every phase.
+- **Product-development signals come from qualitative channels + an opt-in
+  cohort, not always-on behavioral telemetry** (ADR 0008). iabar's audience is
+  adversely selected for privacy, so opt-out telemetry would be both widely
+  disabled and survivorship-biased — don't plan around having representative
+  click-stream data. All telemetry is opt-in / default-off, crash and usage are
+  separate switches, and every report flows through the single audited egress
+  seam (ADR 0006) so users can see it. Primary signals: GitHub issues, Discord,
+  user interviews, and the opt-in beta cohort.

@@ -1,15 +1,15 @@
-//! `AnthropicProvider` — a real `iacoder_core::LlmProvider` implemented over
+//! `AnthropicProvider` — a real engine `LlmProvider` implemented over
 //! the browser fetch backend.
 //!
 //! This is the payoff of the Wave B `Send` surgery: because the trait's `Send`
 //! bounds are target-conditional, a `!Send` fetch-backed provider satisfies
 //! `LlmProvider` on wasm. The harness's agent loop drives providers through
-//! exactly this trait — so once `iacoder-agent` crosses the wasm gate (Wave D)
+//! exactly this trait — so once the agent crate crosses the wasm gate (Wave D)
 //! it will drive this provider unchanged.
 //!
 //! Streaming is not yet wired (reqwest's wasm backend returns whole bodies);
 //! `chat` performs a non-streaming request and emits the result as a single
-//! `TextDelta` + `Usage` + `Stop` (see iabar ROADMAP, Wave C).
+//! `TextDelta` + `Usage` + `Stop` (see IABar ROADMAP, Wave C).
 
 use async_trait::async_trait;
 use futures::stream;
@@ -89,7 +89,7 @@ struct WireErr {
     message: String,
 }
 
-/// Flatten an iacoder `Message` list into Anthropic wire messages, keeping only
+/// Flatten an engine `Message` list into Anthropic wire messages, keeping only
 /// text content (tool calls / multimodal arrive with Wave E).
 fn to_wire(req: &ChatRequest) -> Vec<WireMsg> {
     req.messages
@@ -206,7 +206,7 @@ pub async fn provider_chat(req: JsValue) -> Result<JsValue, JsValue> {
 
     let provider = AnthropicProvider::new(req.api_key.clone(), req.model.clone());
 
-    // Assemble an iacoder ChatRequest from the JS payload.
+    // Assemble an engine ChatRequest from the JS payload.
     use std::sync::Arc;
     let messages: Vec<iacoder_core::Message> = req
         .messages

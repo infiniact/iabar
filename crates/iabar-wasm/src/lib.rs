@@ -1,9 +1,9 @@
-//! `iabar-wasm` — the wasm-bindgen bridge between the `iacoder` harness and
-//! the iabar browser extension.
+//! `iabar-wasm` — the wasm-bindgen bridge between the AI agent harness and
+//! the IABar browser extension.
 //!
-//! Phase 0 brings iacoder's **pure hook layer** across the wasm boundary: the
+//! Phase 0 brings the engine's **pure hook layer** across the wasm boundary: the
 //! event taxonomy, `[[hooks]]` TOML parsing/validation, and prompt-template
-//! interpolation all run as real `iacoder-hooks` code inside the extension —
+//! interpolation all run as real engine hook code inside the extension —
 //! no reimplementation. The native execution layer (shell/HTTP dispatch) is
 //! gated out on wasm and returns as the harness gains browser-native backends
 //! (see ROADMAP.md).
@@ -30,9 +30,9 @@ pub fn version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
 }
 
-/// Every lifecycle event the iacoder hook system understands, in declaration
+/// Every lifecycle event the AI agent hook system understands, in declaration
 /// order. The extension renders these as the selectable triggers when a user
-/// authors a hook. Sourced from `iacoder_hooks::HookEvent` — single source of
+/// authors a hook. Sourced from the engine's `HookEvent` — single source of
 /// truth, so the list never drifts from the harness.
 #[wasm_bindgen]
 #[must_use]
@@ -81,10 +81,10 @@ struct ValidateResult {
     error: Option<String>,
 }
 
-/// Parse and validate an iacoder `[[hooks]]` TOML config using the real
-/// `iacoder_hooks::parse_hooks`, returning a structured summary the side panel
+/// Parse and validate an AI agent `[[hooks]]` TOML config using the real
+/// engine `parse_hooks`, returning a structured summary the side panel
 /// renders. On a config error `ok` is false and `error` carries the message
-/// `iacoder` itself would print.
+/// the engine itself would print.
 #[wasm_bindgen]
 #[must_use]
 pub fn validate_hooks(toml_src: &str) -> JsValue {
@@ -124,7 +124,7 @@ pub fn validate_hooks(toml_src: &str) -> JsValue {
     serde_wasm_bindgen::to_value(&result).unwrap_or(JsValue::NULL)
 }
 
-/// Whether `name` is a hook event iacoder recognizes — used to validate the
+/// Whether `name` is a hook event the engine recognizes — used to validate the
 /// trigger field as the user types.
 #[wasm_bindgen]
 #[must_use]
@@ -137,7 +137,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn events_round_trip_through_iacoder() {
+    fn events_round_trip_through_engine() {
         // Every name we advertise must parse back to a real HookEvent.
         for name in hook_events() {
             assert!(HookEvent::parse(&name).is_some(), "unknown event {name}");

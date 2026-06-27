@@ -1,6 +1,6 @@
-# Pinned to match the sibling `iacoder` workspace (1.92.0) so the path
+# Pinned to match the AI agent engine workspace (1.92.0) so the git
 # dependencies build under an identical compiler. `wasm32-unknown-unknown`
-# is the only target iabar ships.
+# is the only target IABar ships.
 [toolchain]
 channel = "1.92.0"
 components = ["rustfmt", "clippy"]

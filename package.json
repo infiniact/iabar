@@ -1,7 +1,7 @@
 {
   "name": "iabar",
   "version": "0.1.0",
-  "description": "A Chrome MV3 extension powered by the iacoder agent harness compiled to WebAssembly",
+  "description": "A Chrome MV3 extension powered by an AI agent harness compiled to WebAssembly",
   "type": "module",
   "private": true,
   "scripts": {

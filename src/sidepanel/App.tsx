@@ -9,7 +9,7 @@ import {
   type ValidateResult,
 } from '../harness'
 
-const SAMPLE_HOOKS = `# iacoder [[hooks]] config — parsed & validated by real iacoder code in wasm.
+const SAMPLE_HOOKS = `# AI agent [[hooks]] config — parsed & validated by real engine code in wasm.
 [[hooks]]
 event = "PreToolUse"
 command = "echo blocking dangerous tool"
@@ -55,8 +55,8 @@ export function App() {
         <div className="app__brand">
           <span className="app__logo">⌘</span>
           <div>
-            <h1>iabar</h1>
-            <p className="app__tagline">iacoder harness · WebAssembly</p>
+            <h1>IABar</h1>
+            <p className="app__tagline">AI agent harness · WebAssembly</p>
           </div>
         </div>
         <HarnessBadge harness={harness} />
@@ -104,7 +104,7 @@ function HookLab({ events }: { events: string[] }) {
     <section className="panel">
       <div className="panel__title">
         <h2>Hook Lab</h2>
-        <span className="panel__hint">parsed by iacoder-hooks · wasm</span>
+        <span className="panel__hint">parsed by the AI agent engine · wasm</span>
       </div>
 
       <textarea
@@ -208,12 +208,12 @@ function Chat() {
     setInput('')
     setBusy(true)
     try {
-      // Drives through the real iacoder_core::LlmProvider trait (wasm).
+      // Drives through the real engine LlmProvider trait (wasm).
       const result = await providerChat({
         apiKey,
         messages: history,
         system:
-          'You are iabar, an AI assistant running inside a Chrome extension powered by the iacoder harness compiled to WebAssembly. Be concise.',
+          'You are IABar, an AI assistant running inside a Chrome extension powered by an AI agent harness compiled to WebAssembly. Be concise.',
       })
       setMessages([...history, { role: 'assistant', content: result.text }])
     } catch (e: unknown) {

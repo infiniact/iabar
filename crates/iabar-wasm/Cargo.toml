@@ -6,7 +6,7 @@ rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 authors.workspace = true
-description = "wasm-bindgen bridge exposing the iacoder harness to the iabar browser extension"
+description = "wasm-bindgen bridge exposing the AI agent harness to the IABar browser extension"
 publish = false
 
 [lib]
@@ -33,10 +33,10 @@ serde_json.workspace = true
 serde-wasm-bindgen.workspace = true
 console_error_panic_hook.workspace = true
 
-# Real iacoder code, compiled to wasm. `iacoder-hooks` is the first crate
+# Real AI agent engine code, compiled to wasm. The hooks crate is the first
 # across the wasm portability gate (see ROADMAP.md). More follow.
 iacoder-hooks.workspace = true
-# Wave A/B: the harness core (pure types + the `LlmProvider` trait, whose
+# Wave A/B: the engine core (pure types + the `LlmProvider` trait, whose
 # `Send` bounds are target-conditional). `AnthropicProvider` impls it on wasm.
 iacoder-core.workspace = true
 async-trait.workspace = true

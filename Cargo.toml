@@ -5,8 +5,11 @@ members = ["crates/*"]
 [workspace.package]
 edition = "2024"
 rust-version = "1.85"
-license = "Apache-2.0"
-repository = "https://github.com/datiexu/iabar"
+# iabar 壳(本仓自有源码,含 iabar-wasm 桥)按 MIT 授权。注意:编译产物
+# `iabar_wasm_bg.wasm` 内嵌专有 iacoder 引擎,该二进制不在 MIT 范围内——
+# 许可边界见 LICENSING.md。
+license = "MIT"
+repository = "https://github.com/infiniact/iabar"
 authors = ["iabar contributors"]
 
 # `iabar` is the browser-extension front for the `iacoder` agent harness.

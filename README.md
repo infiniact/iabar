@@ -1,9 +1,13 @@
 # iabar
 
 **iacoder, in your browser.** A Chrome MV3 extension that runs the
-[`iacoder`](https://github.com/datiexu/iacoder) agent harness as
+[`iacoder`](https://github.com/infiniact/iacoder) agent harness as
 WebAssembly — real iacoder Rust code, compiled to `wasm32`, executing inside
 the extension's side panel. No reimplementation of the harness in JS.
+
+> Note: `iacoder` is a **private, proprietary** repository (access by license).
+> The iabar shell here is MIT; the engine it embeds is not — see
+> [LICENSING.md](./LICENSING.md).
 
 > Status: **Phase 0 — foundation.** The Rust→wasm→extension pipeline is live
 > and runs real iacoder code (the hook subsystem). The full agent loop is
@@ -53,7 +57,9 @@ source of truth.
 - Rust `1.92.0` (pinned via `rust-toolchain.toml`) + `wasm32-unknown-unknown`
 - [`wasm-pack`](https://rustwasm.github.io/wasm-pack/) (`brew install wasm-pack`)
 - Node + `pnpm`
-- A checkout of [`iacoder`](https://github.com/datiexu/iacoder) at `../iacoder`
+- A checkout of [`iacoder`](https://github.com/infiniact/iacoder) at `../iacoder`
+  (**private repo — access by license**; the public iabar shell alone will not
+  build a shippable extension, by design — see [LICENSING.md](./LICENSING.md))
 
 ```sh
 rustup target add wasm32-unknown-unknown
@@ -92,4 +98,16 @@ Load `dist/` once; @crxjs hot-reloads the extension on change.
 
 ## License
 
-Apache-2.0 — see [LICENSE](./LICENSE).
+iabar splits into two licensing zones — see [LICENSING.md](./LICENSING.md) for the
+precise boundary:
+
+- **The iabar shell** (this repo's own source — `src/**`, the `crates/iabar-wasm`
+  bridge source, build config, repo docs) is **MIT** — see [LICENSE](./LICENSE).
+- **The iacoder engine** (pulled by path from the private `../iacoder` repo) and the
+  **compiled `iabar_wasm_bg.wasm` binary that embeds it** are **proprietary**,
+  licensed separately; the MIT grant does **not** extend to them.
+
+Because the engine binary is proprietary (not source-readable), iabar earns trust
+through **full egress traffic audit** rather than source disclosure — the
+licensing boundary and the audit trust-root are stated in
+[LICENSING.md](./LICENSING.md).

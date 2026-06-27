@@ -1,0 +1,44 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  # 让 cargo 用系统 git（而非内置 libgit2）拉依赖，这样才能用上下面的 git 凭据
+  CARGO_NET_GIT_FETCH_WITH_CLI: "true"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 关键：把对 github.com 的 https 访问改写成带 PAT 的形式，
+      # 使 cargo 能拉取私有依赖 infiniact/iacoder
+      - name: Configure git auth for private iacoder dependency
+        run: |
+          git config --global \
+            url."https://x-access-token:${{ secrets.IACODER_TOKEN }}@github.com/".insteadOf \
+            "https://github.com/"
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install wasm-pack
+        uses: jetli/wasm-pack-action@v0.4.0
+
+      # 浏览器用 ESM：--target web。若要打 npm 包可改 --target bundler
+      - name: Build wasm
+        run: wasm-pack build --release --target web --out-dir pkg
+
+      - name: Upload wasm artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: iabar-wasm
+          path: pkg/

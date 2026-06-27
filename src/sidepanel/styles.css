@@ -1,0 +1,363 @@
+:root {
+  --bg: #0f1115;
+  --panel: #171a21;
+  --panel-muted: #13151b;
+  --border: #262b36;
+  --text: #e6e8ec;
+  --text-dim: #9aa3b2;
+  --accent: #6ea8fe;
+  --ok: #4ade80;
+  --err: #f87171;
+  --warn: #fbbf24;
+  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  min-height: 100vh;
+}
+
+.app__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.app__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.app__logo {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent), #a78bfa);
+  color: #0b0d12;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.app__header h1 {
+  margin: 0;
+  font-size: 16px;
+  letter-spacing: 0.2px;
+}
+
+.app__tagline {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.badge {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.badge--ok {
+  color: var(--ok);
+  border-color: color-mix(in srgb, var(--ok) 40%, transparent);
+}
+.badge--pending {
+  color: var(--text-dim);
+}
+.badge--error {
+  color: var(--err);
+  border-color: color-mix(in srgb, var(--err) 40%, transparent);
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.panel--muted {
+  background: var(--panel-muted);
+}
+
+.panel--error {
+  border-color: color-mix(in srgb, var(--err) 50%, transparent);
+}
+
+.panel__title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.panel__title h2 {
+  margin: 0;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-dim);
+}
+
+.panel__hint {
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+.hook-editor {
+  width: 100%;
+  min-height: 150px;
+  resize: vertical;
+  background: #0b0d12;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.result {
+  margin-top: 10px;
+  font-size: 12px;
+}
+
+.result--error {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  color: var(--err);
+}
+
+.result__icon {
+  font-weight: 700;
+}
+
+.result__summary {
+  color: var(--ok);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.hook-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hook-item {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 8px;
+  background: #0b0d12;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.hook-item__event {
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.hook-item__event--unknown {
+  color: var(--warn);
+}
+
+.hook-item__detail {
+  color: var(--text-dim);
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hook-item__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-dim);
+  font-size: 11px;
+}
+
+.dot {
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--accent) 25%, transparent);
+  color: var(--accent);
+}
+
+.tag {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-weight: 600;
+}
+
+.tag--command {
+  background: color-mix(in srgb, var(--warn) 22%, transparent);
+  color: var(--warn);
+}
+.tag--prompt {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  color: var(--accent);
+}
+.tag--http {
+  background: color-mix(in srgb, #34d399 22%, transparent);
+  color: #34d399;
+}
+
+.muted-copy {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+
+/* Chat */
+.chat {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chat__key {
+  width: 100%;
+  background: #0b0d12;
+  color: var(--text);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+.chat__log {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 4px 2px;
+}
+
+.bubble {
+  max-width: 88%;
+  padding: 8px 11px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.bubble--user {
+  align-self: flex-end;
+  background: var(--accent);
+  color: #0b0d12;
+  border-bottom-right-radius: 3px;
+}
+
+.bubble--assistant {
+  align-self: flex-start;
+  background: #0b0d12;
+  border: 1px solid var(--border);
+  border-bottom-left-radius: 3px;
+}
+
+.bubble__typing {
+  letter-spacing: 2px;
+  opacity: 0.6;
+}
+
+.chat__error {
+  font-size: 11px;
+  color: var(--err);
+  word-break: break-word;
+}
+
+.chat__input {
+  display: flex;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+.chat__input textarea {
+  flex: 1;
+  resize: none;
+  background: #0b0d12;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.chat__input button {
+  background: var(--accent);
+  color: #0b0d12;
+  border: none;
+  border-radius: 8px;
+  padding: 0 14px;
+  height: 38px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.chat__input button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.chat__clearkey {
+  align-self: flex-end;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 10px;
+  cursor: pointer;
+  padding: 0;
+}
+
+code {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 11px;
+  background: #0b0d12;
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+
+pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 11px;
+}

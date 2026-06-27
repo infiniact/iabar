@@ -1,0 +1,47 @@
+[package]
+name = "iabar-wasm"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+description = "wasm-bindgen bridge exposing the iacoder harness to the iabar browser extension"
+publish = false
+
+[lib]
+# `cdylib` is what wasm-bindgen/wasm-pack consume; `rlib` keeps unit tests
+# runnable on the host.
+crate-type = ["cdylib", "rlib"]
+
+# wasm-pack ships an old `wasm-opt` that rejects the bulk-memory ops current
+# rustc emits. Disable it here for a reliable build; for production size
+# optimization install a recent binaryen (`brew install binaryen`) and run
+# `wasm-opt -Os --enable-bulk-memory` on the output, or flip these back on.
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false
+
+[package.metadata.wasm-pack.profile.dev]
+wasm-opt = false
+
+[dependencies]
+wasm-bindgen.workspace = true
+wasm-bindgen-futures.workspace = true
+js-sys.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+serde-wasm-bindgen.workspace = true
+console_error_panic_hook.workspace = true
+
+# Real iacoder code, compiled to wasm. `iacoder-hooks` is the first crate
+# across the wasm portability gate (see ROADMAP.md). More follow.
+iacoder-hooks.workspace = true
+# Wave A/B: the harness core (pure types + the `LlmProvider` trait, whose
+# `Send` bounds are target-conditional). `AnthropicProvider` impls it on wasm.
+iacoder-core.workspace = true
+async-trait.workspace = true
+futures.workspace = true
+
+# Anthropic Messages API client over the browser fetch backend. reqwest's
+# wasm target routes through `fetch`; the browser handles TLS, so no rustls.
+reqwest = { version = "0.13", default-features = false, features = ["json"] }

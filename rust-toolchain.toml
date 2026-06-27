@@ -1,0 +1,8 @@
+# Pinned to match the sibling `iacoder` workspace (1.92.0) so the path
+# dependencies build under an identical compiler. `wasm32-unknown-unknown`
+# is the only target iabar ships.
+[toolchain]
+channel = "1.92.0"
+components = ["rustfmt", "clippy"]
+targets = ["wasm32-unknown-unknown"]
+profile = "minimal"

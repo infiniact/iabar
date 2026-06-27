@@ -591,6 +591,7 @@ dependencies = [
 [[package]]
 name = "iacoder-core"
 version = "0.0.0"
+source = "git+https://github.com/infiniact/iacoder.git?branch=main#d015a0fdedd597c2ebf63ccbc23719e6db4c77f6"
 dependencies = [
  "anyhow",
  "async-stream",
@@ -626,6 +627,7 @@ dependencies = [
 [[package]]
 name = "iacoder-hooks"
 version = "0.0.0"
+source = "git+https://github.com/infiniact/iacoder.git?branch=main#d015a0fdedd597c2ebf63ccbc23719e6db4c77f6"
 dependencies = [
  "async-trait",
  "futures",

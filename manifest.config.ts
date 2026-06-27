@@ -40,8 +40,8 @@ export default defineManifest({
   // tab the user invoked on. No content_scripts — nothing runs on pages by
   // default.
   permissions: ['sidePanel', 'activeTab', 'tabs', 'scripting', 'storage'],
-  // Narrow: only the LLM API (bypasses CORS). Not <all_urls>.
-  host_permissions: ['https://api.anthropic.com/*'],
+  // Narrow: only the LLM provider endpoints (bypasses CORS). Not <all_urls>.
+  host_permissions: ['https://api.anthropic.com/*', 'https://api.deepseek.com/*'],
   // Page access is requested at runtime, per origin, when the user @-references
   // a tab (ADR 0009). Nothing is granted up front.
   optional_host_permissions: ['*://*/*'],

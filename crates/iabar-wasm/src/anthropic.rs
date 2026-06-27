@@ -41,6 +41,10 @@ pub struct ChatMessage {
 #[serde(rename_all = "camelCase")]
 pub struct ChatRequest {
     pub api_key: String,
+    /// Provider id: "anthropic" (default) or "deepseek". Routes `provider_chat`
+    /// to the matching `LlmProvider` impl.
+    #[serde(default)]
+    pub provider: Option<String>,
     #[serde(default)]
     pub model: Option<String>,
     #[serde(default)]

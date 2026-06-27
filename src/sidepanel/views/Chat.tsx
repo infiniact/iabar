@@ -104,6 +104,7 @@ export function ChatView({
     try {
       const result = await providerChat({
         apiKey: settings.apiKey,
+        provider: settings.provider,
         model: settings.model,
         system,
         messages: history,

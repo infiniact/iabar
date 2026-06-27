@@ -72,9 +72,12 @@ export interface ChatResult {
   usage: { input_tokens: number; output_tokens: number }
 }
 
-/** Request shape for {@link anthropicChat}. */
+/** Request shape for {@link anthropicChat} / {@link providerChat}. */
 export interface ChatRequest {
   apiKey: string
+  /** Provider id: 'anthropic' (default) or 'deepseek'. Routes to the matching
+   *  LlmProvider impl in wasm. */
+  provider?: string
   model?: string
   system?: string
   messages: ChatTurn[]

@@ -14,6 +14,7 @@ use wasm_bindgen::prelude::*;
 use iacoder_hooks::{HookEvent, HookKind, parse_hooks};
 
 mod anthropic;
+mod deepseek;
 mod provider;
 
 /// Install a panic hook that forwards Rust panics to the browser console.

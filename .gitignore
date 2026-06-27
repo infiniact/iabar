@@ -42,3 +42,6 @@ sider-ref/
 # Extension signing key (private) — never commit; pins the stable ext id
 key.pem
 .ext-key.b64
+
+# Packaged extension zips (build artifacts)
+iabar-*.zip

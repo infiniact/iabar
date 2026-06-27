@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { anthropicChat } from '../../harness'
+import { providerChat } from '../../harness'
 import { PROVIDERS, type Settings, type ThemeMode } from '../../lib/store'
 
 type TestState =
@@ -41,8 +41,9 @@ export function SettingsView({
     }
     setTest({ state: 'testing' })
     try {
-      await anthropicChat({
+      await providerChat({
         apiKey: apiKey.trim(),
+        provider,
         model,
         messages: [{ role: 'user', content: 'ping' }],
         maxTokens: 8,

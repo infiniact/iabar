@@ -25,8 +25,14 @@ export const PROVIDERS: ProviderMeta[] = [
     keyUrl: 'https://console.anthropic.com/settings/keys',
     enabled: true,
   },
+  {
+    id: 'deepseek',
+    label: 'DeepSeek',
+    defaultModel: 'deepseek-chat',
+    keyUrl: 'https://platform.deepseek.com/api_keys',
+    enabled: true,
+  },
   { id: 'openai', label: 'OpenAI', defaultModel: 'gpt-4o', keyUrl: 'https://platform.openai.com/api-keys', enabled: false },
-  { id: 'deepseek', label: 'DeepSeek', defaultModel: 'deepseek-chat', keyUrl: 'https://platform.deepseek.com/api_keys', enabled: false },
 ]
 
 export interface Settings {
@@ -37,8 +43,10 @@ export interface Settings {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
-  provider: 'anthropic',
-  model: 'claude-opus-4-8',
+  // DeepSeek by default (OpenAI-compatible, easy to obtain a key); switch to
+  // Anthropic in Settings when a Claude key is available.
+  provider: 'deepseek',
+  model: 'deepseek-chat',
   apiKey: '',
   theme: 'system',
 }

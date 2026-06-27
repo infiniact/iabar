@@ -204,7 +204,13 @@ pub async fn provider_chat(req: JsValue) -> Result<JsValue, JsValue> {
     let req: crate::anthropic::ChatRequest = serde_wasm_bindgen::from_value(req)
         .map_err(|e| JsValue::from_str(&format!("bad request: {e}")))?;
 
-    let provider = AnthropicProvider::new(req.api_key.clone(), req.model.clone());
+    // Route to the selected provider's LlmProvider impl.
+    let provider: Box<dyn LlmProvider> = match req.provider.as_deref() {
+        Some("deepseek") => {
+            Box::new(crate::deepseek::DeepSeekProvider::new(req.api_key.clone(), req.model.clone()))
+        }
+        _ => Box::new(AnthropicProvider::new(req.api_key.clone(), req.model.clone())),
+    };
 
     // Assemble an engine ChatRequest from the JS payload.
     use std::sync::Arc;

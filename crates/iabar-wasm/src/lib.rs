@@ -14,8 +14,9 @@ use wasm_bindgen::prelude::*;
 use iacoder_hooks::{HookEvent, HookKind, parse_hooks};
 
 mod anthropic;
-mod deepseek;
+mod openai_compat;
 mod provider;
+mod server_time;
 
 /// Install a panic hook that forwards Rust panics to the browser console.
 /// Call once from JS right after the wasm module initializes.

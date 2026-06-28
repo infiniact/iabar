@@ -75,9 +75,12 @@ export interface ChatResult {
 /** Request shape for {@link anthropicChat} / {@link providerChat}. */
 export interface ChatRequest {
   apiKey: string
-  /** Provider id: 'anthropic' (default) or 'deepseek'. Routes to the matching
-   *  LlmProvider impl in wasm. */
+  /** Provider id: 'anthropic' (default) routes to the Anthropic impl; any other
+   *  id routes to the generic OpenAI-compatible impl in wasm. */
   provider?: string
+  /** OpenAI-compatible base URL for non-Anthropic providers (e.g.
+   *  `https://api.deepseek.com`). Ignored for the Anthropic route. */
+  baseUrl?: string
   model?: string
   system?: string
   messages: ChatTurn[]
@@ -95,6 +98,9 @@ export interface ProviderResult {
   input_tokens: number
   output_tokens: number
   stop_reason: string
+  /** Provider's `Date` response header (RFC 1123), for the trusted-time
+   *  watermark. Null if the provider omitted it. */
+  server_date: string | null
 }
 
 /**

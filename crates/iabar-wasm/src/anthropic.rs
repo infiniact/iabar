@@ -41,10 +41,15 @@ pub struct ChatMessage {
 #[serde(rename_all = "camelCase")]
 pub struct ChatRequest {
     pub api_key: String,
-    /// Provider id: "anthropic" (default) or "deepseek". Routes `provider_chat`
-    /// to the matching `LlmProvider` impl.
+    /// Provider id: "anthropic" (default) routes to the Anthropic impl; any
+    /// other id routes to the generic OpenAI-compatible impl, which uses
+    /// `base_url` for the endpoint.
     #[serde(default)]
     pub provider: Option<String>,
+    /// OpenAI-compatible base URL (e.g. `https://api.deepseek.com`). The chat
+    /// path `/chat/completions` is appended. Ignored for the Anthropic route.
+    #[serde(default)]
+    pub base_url: Option<String>,
     #[serde(default)]
     pub model: Option<String>,
     #[serde(default)]

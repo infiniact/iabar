@@ -1,7 +1,18 @@
 import { useState } from 'react'
 import { providerChat } from '../../harness'
-import { fetchModels } from '../../lib/models'
-import { PROVIDERS, type ProviderId, type Settings, type ThemeMode } from '../../lib/store'
+import { fetchModels, modelLabel } from '../../lib/models'
+import {
+  baseUrlFor,
+  PROVIDERS,
+  type Language,
+  type ProviderId,
+  type Settings,
+  type ThemeMode,
+} from '../../lib/store'
+import { useT } from '../../lib/i18n'
+import { EyeIcon, EyeOffIcon } from '../icons'
+import { FilterSelect } from '../FilterSelect'
+import { LicenseSection } from './LicenseSection'
 
 type Status =
   | { state: 'idle' }
@@ -13,29 +24,42 @@ export function SettingsView({
   settings,
   onSave,
   onSetTheme,
+  onSetLanguage,
+  onDone,
 }: {
   settings: Settings
   onSave: (next: Settings) => void
   onSetTheme: (mode: ThemeMode) => void
+  onSetLanguage: (lang: Language) => void
+  onDone: () => void
 }) {
+  const t = useT()
   const [provider, setProvider] = useState<ProviderId>(settings.provider)
-  const [apiKey, setApiKey] = useState(settings.apiKey)
-  const [keyMode, setKeyMode] = useState<'get' | 'manual'>(settings.apiKey ? 'manual' : 'get')
-  const [model, setModel] = useState(settings.model)
-  const [models, setModels] = useState<string[]>([])
+  // Per-provider credentials/model — switching never loses what you entered.
+  const [byProvider, setByProvider] = useState(settings.byProvider)
+  const [showKey, setShowKey] = useState(false)
   const [fetchStatus, setFetchStatus] = useState<Status>({ state: 'idle' })
   const [test, setTest] = useState<Status>({ state: 'idle' })
   const [saved, setSaved] = useState(false)
+  const [tab, setTab] = useState<'provider' | 'language' | 'theme' | 'license'>('provider')
 
   const meta = PROVIDERS.find((p) => p.id === provider)!
+  const cfg = byProvider[provider]
+  const apiKey = cfg.apiKey
+  const model = cfg.model
+  // The "checked" model list lives in the provider config so it persists.
+  const models = cfg.models ?? []
   const modelOptions = models.length ? models : [model || meta.defaultModel]
+
+  function patchCfg(patch: Partial<{ apiKey: string; model: string; models: string[] }>) {
+    setByProvider((b) => ({ ...b, [provider]: { ...b[provider], ...patch } }))
+  }
 
   function pickProvider(id: ProviderId) {
     const m = PROVIDERS.find((p) => p.id === id)!
     if (!m.enabled) return
     setProvider(id)
-    setModel(m.defaultModel)
-    setModels([])
+    setShowKey(false)
     setFetchStatus({ state: 'idle' })
     setTest({ state: 'idle' })
   }
@@ -43,24 +67,31 @@ export function SettingsView({
   // Step after the key: pull the model list (also validates the key).
   async function getModels() {
     if (!apiKey.trim()) {
-      setFetchStatus({ state: 'fail', msg: 'Enter an API key first.' })
+      setFetchStatus({ state: 'fail', msg: t('settings.needKey') })
       return
     }
     setFetchStatus({ state: 'busy' })
     try {
       const ids = await fetchModels(provider, apiKey)
-      setModels(ids)
-      setModel((cur) => (ids.includes(cur) ? cur : ids[0]))
-      setFetchStatus({ state: 'ok', msg: `${ids.length} models` })
+      const nextModel = ids.includes(model) ? model : ids[0]
+      // Persist the full list immediately so the chat composer's picker sees it
+      // without needing an explicit Save (closing the overlay would drop it).
+      const next = {
+        ...byProvider,
+        [provider]: { ...byProvider[provider], apiKey: apiKey.trim(), models: ids, model: nextModel },
+      }
+      setByProvider(next)
+      onSave({ provider, theme: settings.theme, language: settings.language, byProvider: next })
+      setFetchStatus({ state: 'ok', msg: String(ids.length) })
     } catch (e) {
-      setModels([])
+      patchCfg({ models: [] })
       setFetchStatus({ state: 'fail', msg: String(e instanceof Error ? e.message : e) })
     }
   }
 
   async function runTest() {
     if (!apiKey.trim()) {
-      setTest({ state: 'fail', msg: 'Enter an API key first.' })
+      setTest({ state: 'fail', msg: t('settings.needKey') })
       return
     }
     setTest({ state: 'busy' })
@@ -68,6 +99,7 @@ export function SettingsView({
       await providerChat({
         apiKey: apiKey.trim(),
         provider,
+        baseUrl: baseUrlFor(provider),
         model,
         messages: [{ role: 'user', content: 'ping' }],
         maxTokens: 8,
@@ -79,107 +111,154 @@ export function SettingsView({
   }
 
   function save() {
-    onSave({ provider, model, apiKey: apiKey.trim(), theme: settings.theme })
+    const next = { ...byProvider, [provider]: { ...byProvider[provider], apiKey: apiKey.trim() } }
+    onSave({ provider, theme: settings.theme, language: settings.language, byProvider: next })
     setSaved(true)
-    setTimeout(() => setSaved(false), 1500)
+    // Show "Saved ✓" briefly, then return to chat.
+    setTimeout(onDone, 700)
   }
 
   return (
     <div className="view view--settings">
-      <h2 className="view__title">Settings</h2>
+      <h2 className="view__title">{t('settings.title')}</h2>
 
-      <section className="field">
-        <label className="field__label">Provider</label>
-        <div className="seg">
-          {PROVIDERS.map((p) => (
-            <button
-              key={p.id}
-              className={`seg__btn${provider === p.id ? ' seg__btn--on' : ''}`}
-              disabled={!p.enabled}
-              title={p.enabled ? '' : 'Coming soon'}
-              onClick={() => pickProvider(p.id)}
-            >
-              {p.label}
-              {!p.enabled && <span className="seg__soon">soon</span>}
-            </button>
-          ))}
-        </div>
-      </section>
+      <div className="tabs" role="tablist">
+        {(
+          [
+            ['provider', t('settings.provider')],
+            ['language', t('settings.language')],
+            ['theme', t('settings.theme')],
+            ['license', t('license.title')],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            role="tab"
+            aria-selected={tab === id}
+            className={`tab${tab === id ? ' tab--on' : ''}`}
+            onClick={() => setTab(id)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
 
-      {/* 1. API key first */}
-      <section className="field">
-        <div className="field__row">
-          <label className="field__label">API key</label>
-          <div className="seg seg--mini">
+      {tab === 'provider' && (
+        <>
+      {/* Provider → API key → Model, grouped into one card */}
+      <div className="group">
+        <section className="field">
+          <label className="field__label">{t('settings.provider')}</label>
+          <FilterSelect
+            value={provider}
+            onChange={(v) => pickProvider(v as ProviderId)}
+            options={PROVIDERS.map((p) => ({
+              value: p.id,
+              label: p.label,
+              disabled: !p.enabled,
+              badge: p.enabled ? undefined : 'soon',
+            }))}
+          />
+        </section>
+
+        {/* 1. API key first */}
+        <section className="field">
+          <div className="field__row">
+            <label className="field__label">{t('settings.apiKey')}</label>
+            <a className="field__hint-link" href={meta.keyUrl} target="_blank" rel="noreferrer">
+              {t('settings.getKey')}
+            </a>
+          </div>
+
+          <div className="field__inline">
+            <div className="input-affix">
+              <input
+                className="input"
+                type={showKey ? 'text' : 'password'}
+                placeholder={provider === 'anthropic' ? 'sk-ant-…' : 'sk-…'}
+                value={apiKey}
+                spellCheck={false}
+                onChange={(e) => {
+                  patchCfg({ apiKey: e.target.value, models: [] })
+                  setFetchStatus({ state: 'idle' })
+                  setTest({ state: 'idle' })
+                }}
+              />
+              <button
+                type="button"
+                className="input__eye"
+                title={showKey ? 'Hide key' : 'Show key'}
+                aria-label={showKey ? 'Hide key' : 'Show key'}
+                onClick={() => setShowKey((v) => !v)}
+              >
+                {showKey ? <EyeOffIcon size={16} /> : <EyeIcon size={16} />}
+              </button>
+            </div>
             <button
-              className={`seg__btn${keyMode === 'get' ? ' seg__btn--on' : ''}`}
-              onClick={() => setKeyMode('get')}
+              className={`btn${fetchStatus.state === 'ok' ? ' btn--ok' : ''}${fetchStatus.state === 'fail' ? ' btn--fail' : ''}`}
+              onClick={getModels}
+              disabled={fetchStatus.state === 'busy'}
+              title={fetchStatus.state === 'fail' ? fetchStatus.msg : ''}
             >
-              获取
-            </button>
-            <button
-              className={`seg__btn${keyMode === 'manual' ? ' seg__btn--on' : ''}`}
-              onClick={() => setKeyMode('manual')}
-            >
-              手动输入
+              {fetchStatus.state === 'busy'
+                ? t('settings.fetchBusy')
+                : fetchStatus.state === 'ok'
+                  ? t('settings.fetchOk', Number(fetchStatus.msg) as never)
+                  : fetchStatus.state === 'fail'
+                    ? t('settings.fetchFail')
+                    : t('settings.fetchModels')}
             </button>
           </div>
-        </div>
+        </section>
 
-        {keyMode === 'get' && (
-          <a className="field__hint-link" href={meta.keyUrl} target="_blank" rel="noreferrer">
-            Open {meta.label} console to create a key ↗
-          </a>
-        )}
-
-        <input
-          className="input"
-          type="password"
-          placeholder={provider === 'anthropic' ? 'sk-ant-…' : 'sk-…'}
-          value={apiKey}
-          spellCheck={false}
-          onChange={(e) => {
-            setApiKey(e.target.value)
-            setFetchStatus({ state: 'idle' })
-            setTest({ state: 'idle' })
-            setModels([])
-          }}
-        />
-
-        <div className="field__actions">
-          <button className="btn" onClick={getModels} disabled={fetchStatus.state === 'busy'}>
-            {fetchStatus.state === 'busy' ? 'Fetching…' : '获取模型列表'}
-          </button>
-          {fetchStatus.state === 'ok' && <span className="status status--ok">✓ {fetchStatus.msg}</span>}
-          {fetchStatus.state === 'fail' && (
-            <span className="status status--fail">✗ {fetchStatus.msg}</span>
+        {/* 2. Model — chosen from the fetched list, tested in place */}
+        <section className="field">
+          <label className="field__label">{t('settings.model')}</label>
+          <div className="field__inline">
+            <FilterSelect
+              value={model}
+              search
+              onChange={(v) => patchCfg({ model: v })}
+              options={modelOptions.map((m) => ({ value: m, label: modelLabel(m) }))}
+            />
+            <button
+              className={`btn${test.state === 'ok' ? ' btn--ok' : ''}${test.state === 'fail' ? ' btn--fail' : ''}`}
+              onClick={runTest}
+              disabled={test.state === 'busy'}
+              title={test.state === 'fail' ? test.msg : ''}
+            >
+              {test.state === 'busy'
+                ? t('settings.testBusy')
+                : test.state === 'ok'
+                  ? t('settings.testOk')
+                  : test.state === 'fail'
+                    ? t('settings.testFail')
+                    : t('settings.test')}
+            </button>
+          </div>
+          {!models.length && (
+            <span className="field__note">{t('settings.pickModelNote')}</span>
           )}
-        </div>
-      </section>
+        </section>
+      </div>
 
-      {/* 2. Model — chosen from the fetched list */}
-      <section className="field">
-        <label className="field__label">Model</label>
-        <select className="input" value={model} onChange={(e) => setModel(e.target.value)}>
-          {modelOptions.map((m) => (
-            <option key={m} value={m}>
-              {m}
-            </option>
-          ))}
-        </select>
-        {!models.length && (
-          <span className="field__note">Fetch the model list above, then pick one.</span>
-        )}
-      </section>
+          <div className="view__footer">
+            <button className="btn btn--primary" onClick={save}>
+              {saved ? t('settings.saved') : t('settings.save')}
+            </button>
+          </div>
+        </>
+      )}
 
-      <section className="field">
-        <label className="field__label">Theme</label>
-        <div className="seg">
+      {tab === 'theme' && (
+        <section className="field">
+          <label className="field__label">{t('settings.theme')}</label>
+          <div className="seg">
           {(
             [
-              ['system', '跟随系统'],
-              ['light', '浅色'],
-              ['dark', '深色'],
+              ['system', t('settings.themeSystem')],
+              ['light', t('settings.themeLight')],
+              ['dark', t('settings.themeDark')],
             ] as [ThemeMode, string][]
           ).map(([mode, label]) => (
             <button
@@ -190,21 +269,25 @@ export function SettingsView({
               {label}
             </button>
           ))}
-        </div>
-      </section>
+          </div>
+        </section>
+      )}
 
-      <div className="view__footer">
-        <div className="field__actions">
-          <button className="btn" onClick={runTest} disabled={test.state === 'busy'}>
-            {test.state === 'busy' ? 'Testing…' : '测试'}
-          </button>
-          {test.state === 'ok' && <span className="status status--ok">✓ works</span>}
-          {test.state === 'fail' && <span className="status status--fail">✗ {test.msg}</span>}
-        </div>
-        <button className="btn btn--primary" onClick={save}>
-          {saved ? 'Saved ✓' : '保存'}
-        </button>
-      </div>
+      {tab === 'language' && (
+        <section className="field">
+          <label className="field__label">{t('settings.language')}</label>
+          <FilterSelect
+            value={settings.language}
+            onChange={(v) => onSetLanguage(v as Language)}
+            options={[
+              { value: 'zh', label: '中文' },
+              { value: 'en', label: 'English' },
+            ]}
+          />
+        </section>
+      )}
+
+      {tab === 'license' && <LicenseSection />}
     </div>
   )
 }

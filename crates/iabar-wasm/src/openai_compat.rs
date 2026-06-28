@@ -1,7 +1,10 @@
-//! `DeepSeekProvider` — an OpenAI-compatible `LlmProvider` over browser fetch.
+//! `OpenAiCompatProvider` — a generic OpenAI-compatible `LlmProvider` over
+//! browser fetch.
 //!
-//! DeepSeek speaks the OpenAI Chat Completions wire format
-//! (`POST https://api.deepseek.com/chat/completions`, `Authorization: Bearer`).
+//! Most BYOK providers (DeepSeek, OpenRouter, Kimi/Moonshot, Z.AI/GLM, Qwen,
+//! MiniMax, Doubao, and Gemini's OpenAI-compatible endpoint) speak the OpenAI
+//! Chat Completions wire format (`POST <base>/chat/completions`, bearer auth).
+//! The only thing that varies is the base URL, so it is passed in per request.
 //! Same `?Send` trait shape as `AnthropicProvider` (Wave B). Non-streaming for
 //! now: one request, emitted as a single `TextDelta` + `Usage` + `Stop`.
 
@@ -14,23 +17,35 @@ use iacoder_core::{
     StopReason, StreamEvent, Usage,
 };
 
-const API_URL: &str = "https://api.deepseek.com/chat/completions";
+/// Fallback base when JS doesn't supply one (keeps the legacy DeepSeek route
+/// working even if `baseUrl` is omitted).
+const DEFAULT_BASE: &str = "https://api.deepseek.com";
 const DEFAULT_MODEL: &str = "deepseek-chat";
 const DEFAULT_MAX_TOKENS: u32 = 4096;
 
-/// A fetch-backed DeepSeek (OpenAI-compatible) provider.
+/// A fetch-backed OpenAI-compatible provider, parameterized by base URL.
 #[derive(Debug)]
-pub struct DeepSeekProvider {
+pub struct OpenAiCompatProvider {
+    base_url: String,
     api_key: String,
     model: String,
 }
 
-impl DeepSeekProvider {
-    pub fn new(api_key: impl Into<String>, model: Option<String>) -> Self {
+impl OpenAiCompatProvider {
+    pub fn new(base_url: Option<String>, api_key: impl Into<String>, model: Option<String>) -> Self {
+        let base = base_url
+            .map(|b| b.trim_end_matches('/').to_string())
+            .filter(|b| !b.is_empty())
+            .unwrap_or_else(|| DEFAULT_BASE.to_string());
         Self {
+            base_url: base,
             api_key: api_key.into(),
             model: model.unwrap_or_else(|| DEFAULT_MODEL.to_string()),
         }
+    }
+
+    fn chat_url(&self) -> String {
+        format!("{}/chat/completions", self.base_url)
     }
 }
 
@@ -115,9 +130,9 @@ fn to_wire(req: &ChatRequest) -> Vec<WireMsg> {
 }
 
 #[async_trait(?Send)]
-impl LlmProvider for DeepSeekProvider {
+impl LlmProvider for OpenAiCompatProvider {
     fn id(&self) -> &str {
-        "deepseek"
+        "openai-compat"
     }
 
     fn capabilities(&self) -> ProviderCapabilities {
@@ -138,7 +153,7 @@ impl LlmProvider for DeepSeekProvider {
         };
 
         let resp = reqwest::Client::new()
-            .post(API_URL)
+            .post(self.chat_url())
             .bearer_auth(&self.api_key)
             .json(&body)
             .send()
@@ -146,6 +161,10 @@ impl LlmProvider for DeepSeekProvider {
             .map_err(|e| ProviderError::Transport(e.to_string()))?;
 
         let status = resp.status();
+        // Trusted-time sample: the provider's server clock (see server_time).
+        if let Some(d) = resp.headers().get("date").and_then(|v| v.to_str().ok()) {
+            crate::server_time::set(d);
+        }
         let parsed: WireResp = resp
             .json()
             .await

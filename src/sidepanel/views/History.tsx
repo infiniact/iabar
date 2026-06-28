@@ -1,4 +1,5 @@
 import type { Conversation } from '../../lib/store'
+import { useT, type T } from '../../lib/i18n'
 import { TrashIcon } from '../icons'
 
 export function HistoryView({
@@ -12,19 +13,20 @@ export function HistoryView({
   onOpen: (c: Conversation) => void
   onDelete: (id: string) => void
 }) {
+  const t = useT()
   return (
     <div className="view view--history">
-      <h2 className="view__title">History</h2>
+      <h2 className="view__title">{t('history.title')}</h2>
       {conversations.length === 0 ? (
-        <p className="muted-copy">No conversations yet. Start one with the + button.</p>
+        <p className="muted-copy">{t('history.empty')}</p>
       ) : (
         <ul className="hist">
           {conversations.map((c) => (
             <li key={c.id} className={`hist__item${c.id === activeId ? ' hist__item--active' : ''}`}>
               <button className="hist__open" onClick={() => onOpen(c)}>
-                <span className="hist__title">{c.title || 'Untitled'}</span>
+                <span className="hist__title">{c.title || t('history.untitled')}</span>
                 <span className="hist__meta">
-                  {c.messages.length} msgs · {timeAgo(c.updatedAt)}
+                  {t('history.msgs', c.messages.length as never)} · {timeAgo(t, c.updatedAt)}
                 </span>
               </button>
               <button className="hist__del" aria-label="delete" onClick={() => onDelete(c.id)}>
@@ -38,10 +40,10 @@ export function HistoryView({
   )
 }
 
-function timeAgo(ts: number): string {
+function timeAgo(t: T, ts: number): string {
   const s = Math.floor((Date.now() - ts) / 1000)
-  if (s < 60) return 'just now'
-  if (s < 3600) return `${Math.floor(s / 60)}m ago`
-  if (s < 86400) return `${Math.floor(s / 3600)}h ago`
-  return `${Math.floor(s / 86400)}d ago`
+  if (s < 60) return t('time.justNow')
+  if (s < 3600) return t('time.mAgo', Math.floor(s / 60) as never)
+  if (s < 86400) return t('time.hAgo', Math.floor(s / 3600) as never)
+  return t('time.dAgo', Math.floor(s / 86400) as never)
 }

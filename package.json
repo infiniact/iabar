@@ -1,16 +1,21 @@
 {
   "name": "iabar",
-  "version": "0.1.0",
-  "description": "A Chrome MV3 extension powered by an AI agent harness compiled to WebAssembly",
+  "version": "0.1.5",
+  "description": "Your keys, your provider, your data — never ours.",
   "type": "module",
   "private": true,
   "scripts": {
     "build:wasm": "wasm-pack build crates/iabar-wasm --target web --out-dir ../../src/wasm --out-name iabar_wasm",
     "build:wasm:dev": "wasm-pack build crates/iabar-wasm --dev --target web --out-dir ../../src/wasm --out-name iabar_wasm",
     "dev": "pnpm run build:wasm:dev && vite",
-    "build": "pnpm run build:wasm && pnpm run typecheck && vite build",
+    "build": "node scripts/version.mjs && pnpm run build:wasm && pnpm run typecheck && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc -p tsconfig.app.json && tsc -p tsconfig.node.json"
+    "typecheck": "tsc -p tsconfig.app.json && tsc -p tsconfig.node.json",
+    "build:local": "bash scripts/build-local.sh",
+    "build:store": "bash scripts/build-store.sh",
+    "version:patch": "node scripts/version.mjs",
+    "version:feat": "node scripts/version.mjs --feat",
+    "version:gen": "node scripts/version.mjs --gen"
   },
   "dependencies": {
     "react": "^19.0.0",
@@ -25,5 +30,6 @@
     "@vitejs/plugin-react": "^4.3.4",
     "typescript": "^5.7.0",
     "vite": "^6.0.0"
-  }
+  },
+  "packageManager": "pnpm@10.32.1+sha512.a706938f0e89ac1456b6563eab4edf1d1faf3368d1191fc5c59790e96dc918e4456ab2e67d613de1043d2e8c81f87303e6b40d4ffeca9df15ef1ad567348f2be"
 }

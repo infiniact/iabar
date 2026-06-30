@@ -1,52 +1,28 @@
 <svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- IABar mark: black-titanium badge (brushed dark metal + diagonal specular
-       streak) with a polished-silver browser window / chat bubble (header dots =
-       browser, tail = conversation, graphite spark = AI). Metallic, monochrome. -->
+  <!-- IABar mark: the chat bubble IS the icon (no background badge). A browser
+       window — azure title bar with red/yellow/green traffic-light dots — over a
+       warm gold→orange→magenta body holding a big white AI spark, with a chat
+       tail. -->
   <defs>
-    <clipPath id="r"><rect x="2" y="2" width="124" height="124" rx="30"/></clipPath>
-    <linearGradient id="ti" x1="14" y1="6" x2="118" y2="124" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#2f87cf"/><stop offset="0.42" stop-color="#1a6fbb"/>
-      <stop offset="0.5" stop-color="#2782c9"/><stop offset="0.58" stop-color="#155fa0"/>
-      <stop offset="1" stop-color="#0e5290"/>
+    <clipPath id="bub">
+      <path d="M30 8 H98 A22 22 0 0 1 120 30 V82 A22 22 0 0 1 98 104 H60 L40 123 L52 104 H30 A22 22 0 0 1 8 82 V30 A22 22 0 0 1 30 8 Z"/>
+    </clipPath>
+    <linearGradient id="az" x1="64" y1="8" x2="64" y2="40" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2f87cf"/><stop offset="1" stop-color="#0e5290"/>
     </linearGradient>
-    <linearGradient id="streak" x1="0" y1="0" x2="128" y2="96" gradientUnits="userSpaceOnUse">
-      <stop offset="0.30" stop-color="#FFC56B" stop-opacity="0"/>
-      <stop offset="0.44" stop-color="#FFC56B" stop-opacity="0.45"/>
-      <stop offset="0.50" stop-color="#FF8A66" stop-opacity="0.55"/>
-      <stop offset="0.56" stop-color="#FF5FA2" stop-opacity="0.40"/>
-      <stop offset="0.64" stop-color="#FF5FA2" stop-opacity="0"/>
+    <linearGradient id="warm" x1="64" y1="40" x2="64" y2="123" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFD23A"/><stop offset="0.5" stop-color="#FF7A2F"/><stop offset="1" stop-color="#FF2E8B"/>
     </linearGradient>
-    <linearGradient id="ag" x1="64" y1="28" x2="64" y2="106" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#f6f8fa"/><stop offset="0.20" stop-color="#dadee3"/>
-      <stop offset="0.50" stop-color="#b4bac2"/><stop offset="0.54" stop-color="#cfd4da"/>
-      <stop offset="0.80" stop-color="#979ea7"/><stop offset="1" stop-color="#838a93"/>
-    </linearGradient>
-    <linearGradient id="spark" x1="64" y1="58" x2="64" y2="84" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#4c5158"/><stop offset="1" stop-color="#23262b"/>
-    </linearGradient>
-    <filter id="sh" x="-40%" y="-40%" width="180%" height="180%">
-      <feGaussianBlur in="SourceAlpha" stdDeviation="3.5"/><feOffset dy="2.5"/>
-      <feComponentTransfer><feFuncA type="linear" slope="0.45"/></feComponentTransfer>
-      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
   </defs>
 
-  <g clip-path="url(#r)">
-    <rect x="2" y="2" width="124" height="124" fill="url(#ti)"/>
-    <rect x="2" y="2" width="124" height="124" fill="url(#streak)"/>
-    <ellipse cx="40" cy="20" rx="78" ry="48" fill="#ffffff" fill-opacity="0.06"/>
+  <g clip-path="url(#bub)">
+    <rect x="0" y="0" width="128" height="128" fill="url(#warm)"/>
+    <rect x="0" y="0" width="128" height="40" fill="url(#az)"/>
   </g>
-  <rect x="3.5" y="3.5" width="121" height="121" rx="28.5" fill="none" stroke="#ffffff" stroke-opacity="0.10" stroke-width="1"/>
 
-  <g filter="url(#sh)">
-    <path d="M46 82 L36 105 L64 84 Z" fill="url(#ag)"/>
-    <path d="M42 30 H86 A18 18 0 0 1 104 48 V68 A18 18 0 0 1 86 86 H42 A18 18 0 0 1 24 68 V48 A18 18 0 0 1 42 30 Z" fill="url(#ag)"/>
-  </g>
-  <path d="M42 30 H86 A18 18 0 0 1 104 48 V68 A18 18 0 0 1 86 86 H42 A18 18 0 0 1 24 68 V48 A18 18 0 0 1 42 30 Z"
-        fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="1.2"/>
+  <circle cx="28" cy="24" r="5.5" fill="#FF5F57"/>
+  <circle cx="46" cy="24" r="5.5" fill="#FEBC2E"/>
+  <circle cx="64" cy="24" r="5.5" fill="#28C840"/>
 
-  <circle cx="41" cy="44" r="3.6" fill="#565b62"/><circle cx="54" cy="44" r="3.6" fill="#565b62"/><circle cx="67" cy="44" r="3.6" fill="#565b62"/>
-  <line x1="26" y1="55" x2="102" y2="55" stroke="#000000" stroke-opacity="0.14" stroke-width="1.6"/>
-
-  <path d="M64 59 C65.7 67.5 69.5 70.3 79 71.5 C69.5 72.7 65.7 75.5 64 84 C62.3 75.5 58.5 72.7 49 71.5 C58.5 70.3 62.3 67.5 64 59 Z" fill="url(#spark)"/>
+  <path d="M64 44 C66.5 65 72 71 95 74 C72 77 66.5 83 64 104 C61.5 83 56 77 33 74 C56 71 61.5 65 64 44 Z" fill="#ffffff"/>
 </svg>

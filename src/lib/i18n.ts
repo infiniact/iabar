@@ -90,6 +90,13 @@ const zh = {
   'chat.pickModel': '选择模型',
   'chat.permManual': '手动',
   'chat.permAuto': '自动',
+
+  // Chat — agent activity (live, from the loop's event stream)
+  'chat.actCompacting': '压缩上下文…',
+  'chat.actCompacted': '已压缩上下文',
+  'chat.actTool': '工具',
+  'chat.actToolDone': '完成',
+  'chat.actToolFail': '失败',
   'chat.send': '发送',
   'chat.goSettings': '前往设置添加密钥',
   'chat.attachPage': '引用页面',
@@ -191,6 +198,13 @@ const en: Record<TKey, Entry> = {
   'chat.pickModel': 'Select model',
   'chat.permManual': 'Manual',
   'chat.permAuto': 'Auto',
+
+  // Chat — agent activity (live, from the loop's event stream)
+  'chat.actCompacting': 'Compacting context…',
+  'chat.actCompacted': 'Context compacted',
+  'chat.actTool': 'Tool',
+  'chat.actToolDone': 'done',
+  'chat.actToolFail': 'failed',
   'chat.send': 'Send',
   'chat.goSettings': 'Go to Settings to add a key',
   'chat.attachPage': 'Attach a page',

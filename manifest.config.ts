@@ -15,7 +15,7 @@ const STORE_BUILD = process.env.IABAR_STORE === '1'
 // permission is the narrow LLM API endpoint.
 export default defineManifest({
   manifest_version: 3,
-  name: 'IABar — A real AI agent, right in your browser',
+  name: 'IABar — Real AI agent, simply in your browser',
   version: pkg.version,
   description: pkg.description,
 

@@ -39,8 +39,18 @@ iacoder-hooks.workspace = true
 # Wave A/B: the engine core (pure types + the `LlmProvider` trait, whose
 # `Send` bounds are target-conditional). `AnthropicProvider` impls it on wasm.
 iacoder-core.workspace = true
+# ADR-0103/0104: the agent loop + its tool & context (compaction) layers,
+# wasm-portable with provider+tools host-injected. `iacoder-agent` re-exports
+# the hook/context types a host needs; depend on context/tools directly for the
+# types the bridge constructs (compaction config, ToolBox).
+iacoder-context.workspace = true
+iacoder-tools.workspace = true
+iacoder-agent.workspace = true
 async-trait.workspace = true
 futures.workspace = true
+# The agent loop streams `AgentEvent` over a tokio unbounded channel and the
+# bridge drains it; `sync` is the only feature needed (current-thread, no rt).
+tokio = { version = "1", default-features = false, features = ["sync"] }
 
 # Anthropic Messages API client over the browser fetch backend. reqwest's
 # wasm target routes through `fetch`; the browser handles TLS, so no rustls.

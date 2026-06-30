@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { providerChat, type ChatTurn } from '../../harness'
+import { agentRun, type ChatTurn } from '../../harness'
 import { modelLabel } from '../../lib/models'
 import { recordServerDate } from '../../lib/license/trusted-time'
 import {
@@ -35,6 +35,7 @@ import {
 import { FilterSelect, type SelectOption } from '../FilterSelect'
 import { useClickOutside } from '../useClickOutside'
 import { useT } from '../../lib/i18n'
+import { Markdown } from '../Markdown'
 
 interface Msg extends ChatTurn {
   pending?: boolean
@@ -69,6 +70,9 @@ export function ChatView({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [attachments, setAttachments] = useState<PageContext[]>([])
+  // Live, ephemeral agent activity for the in-flight run (compaction, tool
+  // calls) — surfaced from the loop's event stream, never persisted.
+  const [activity, setActivity] = useState<string[]>([])
   const [picker, setPicker] = useState<{ tabs: RefTab[]; loading: boolean } | null>(null)
   const logRef = useRef<HTMLDivElement>(null)
   const taRef = useRef<HTMLTextAreaElement>(null)
@@ -89,6 +93,7 @@ export function ChatView({
   useEffect(() => {
     setMessages(conversation.messages)
     setAttachments([])
+    setActivity([])
     setError(null)
   }, [conversation.id])
 
@@ -144,37 +149,79 @@ export function ChatView({
     }
     setError(null)
 
-    const history: ChatTurn[] = [...messages.map(stripPending), { role: 'user', content: text }]
-    setMessages([...history, { role: 'assistant', content: '', pending: true }])
+    // The agent loop takes the prior transcript as history and the new message
+    // as the prompt; we render the user turn plus a pending assistant bubble.
+    const prior: ChatTurn[] = messages.map(stripPending)
+    const userTurn: ChatTurn = { role: 'user', content: text }
+    setMessages([...prior, userTurn, { role: 'assistant', content: '', pending: true }])
     setInput('')
+    setActivity([])
     setBusy(true)
 
-    const system = attachments.length
-      ? `${SYSTEM_BASE}\n\nThe user attached page context with @:\n${attachments
+    // Page context (@) is per-turn, so it must ride in the user prompt — the
+    // engine ignores `system` once there's prior history (it's the cache
+    // anchor, carried by the transcript), which would otherwise drop the page.
+    const contextBlock = attachments.length
+      ? `The user attached page context with @:\n${attachments
           .map(
             (a, i) =>
               `[${i + 1}] ${a.title} <${a.url}>\n${a.selection ? `selection: ${a.selection}\n` : ''}${a.text}`,
           )
-          .join('\n\n')}`
-      : SYSTEM_BASE
+          .join('\n\n')}\n\n`
+      : ''
+    const userPrompt = `${contextBlock}${text}`
 
+    let acc = ''
     try {
-      const result = await providerChat({
-        apiKey: cfg.apiKey,
-        provider: settings.provider,
-        baseUrl: baseUrlFor(settings.provider),
-        model: cfg.model,
-        system,
-        messages: history,
-      })
-      // Every model turn yields a trusted server timestamp — fold it in.
+      const result = await agentRun(
+        {
+          apiKey: cfg.apiKey,
+          provider: settings.provider,
+          baseUrl: baseUrlFor(settings.provider),
+          model: cfg.model,
+          system: SYSTEM_BASE,
+          history: prior,
+          userPrompt,
+          // Agent mode lets the loop iterate (tool calls); Ask keeps it short.
+          maxTurns: mode === 'agent' ? 12 : 6,
+        },
+        (ev) => {
+          switch (ev.type) {
+            // Stream assistant text into the pending bubble as it arrives.
+            case 'assistant_delta':
+              acc += ev.text
+              setMessages((cur) => withStreamingTail(cur, acc))
+              break
+            // Surface the loop's compaction + tool activity live.
+            case 'pre_compact':
+              setActivity((a) => [...a, `${t('chat.actCompacting')} (${ev.beforeMessages})`])
+              break
+            case 'post_compact':
+              setActivity((a) => [
+                ...a,
+                `${t('chat.actCompacted')} → ${ev.afterMessages}${ev.droppedMessages ? ` (-${ev.droppedMessages})` : ''}`,
+              ])
+              break
+            case 'tool_call_start':
+              if (ev.name) setActivity((a) => [...a, `${t('chat.actTool')} · ${ev.name}`])
+              break
+            case 'tool_call_result':
+              setActivity((a) => [
+                ...a,
+                `${t('chat.actTool')} · ${ev.name} ${ev.isError ? t('chat.actToolFail') : t('chat.actToolDone')}`,
+              ])
+              break
+          }
+        },
+      )
+      // Every run yields a trusted server timestamp from its last call.
       recordServerDate(result.server_date)
-      const next = [...history, { role: 'assistant' as const, content: result.text }]
+      const next: Msg[] = [...prior, userTurn, { role: 'assistant', content: result.text || acc }]
       setMessages(next)
       setAttachments([])
       persist(next)
     } catch (e) {
-      setMessages(history)
+      setMessages([...prior, userTurn])
       setError(String(e))
     } finally {
       setBusy(false)
@@ -235,17 +282,28 @@ export function ChatView({
         ) : (
           messages.map((m, i) => (
             <div key={i} className={`bubble bubble--${m.role}`}>
-              {m.pending ? (
+              {m.pending && !m.content ? (
                 <span className="bubble__typing" aria-label="thinking">
                   <span />
                   <span />
                   <span />
                 </span>
+              ) : m.role === 'assistant' ? (
+                <Markdown content={m.content} />
               ) : (
                 m.content
               )}
             </div>
           ))
+        )}
+        {activity.length > 0 && (
+          <div className="activity" aria-label="agent activity">
+            {activity.map((line, i) => (
+              <div className="activity__line" key={i}>
+                {line}
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
@@ -403,6 +461,17 @@ export function ChatView({
 
 function stripPending(m: Msg): ChatTurn {
   return { role: m.role, content: m.content }
+}
+
+/** Replace the trailing (pending) assistant bubble's text with the streamed
+ *  accumulation so far, keeping it marked pending until the run settles. */
+function withStreamingTail(cur: Msg[], content: string): Msg[] {
+  const copy = cur.slice()
+  const last = copy[copy.length - 1]
+  if (last && last.role === 'assistant') {
+    copy[copy.length - 1] = { role: 'assistant', content, pending: true }
+  }
+  return copy
 }
 
 // Separator inside a composer model option's value: `provider<SEP>model`. A NUL

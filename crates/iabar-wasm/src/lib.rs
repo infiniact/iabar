@@ -13,6 +13,7 @@ use wasm_bindgen::prelude::*;
 
 use iacoder_hooks::{HookEvent, HookKind, parse_hooks};
 
+mod agent;
 mod anthropic;
 mod openai_compat;
 mod provider;

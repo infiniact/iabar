@@ -159,81 +159,36 @@ export const EyeOffIcon = ({ size }: P) => (
   </svg>
 )
 
-// The IABar mark: a black-titanium badge (brushed dark metal + a diagonal
-// specular streak) with a polished-silver browser window / chat bubble
-// (header dots = browser, tail = conversation, graphite spark = AI). Metallic,
-// monochrome. Matches the extension icon.
+// The IABar mark: the chat bubble IS the icon (no background badge). A browser
+// window — azure title bar with red/yellow/green traffic-light dots — over a
+// warm gold→orange→magenta body holding a big white AI spark, with a chat tail.
+// Matches the extension icon.
 export const Logo = ({ size = 30 }: P) => (
   <svg width={size} height={size} viewBox="0 0 128 128" fill="none">
     <defs>
-      <clipPath id="iabar-logo-r">
-        <rect x="2" y="2" width="124" height="124" rx="30" />
+      <clipPath id="iabar-logo-bub">
+        <path d="M30 8 H98 A22 22 0 0 1 120 30 V82 A22 22 0 0 1 98 104 H60 L40 123 L52 104 H30 A22 22 0 0 1 8 82 V30 A22 22 0 0 1 30 8 Z" />
       </clipPath>
-      <linearGradient id="iabar-logo-ti" x1="14" y1="6" x2="118" y2="124" gradientUnits="userSpaceOnUse">
+      <linearGradient id="iabar-logo-az" x1="64" y1="8" x2="64" y2="40" gradientUnits="userSpaceOnUse">
         <stop offset="0" stopColor="#2f87cf" />
-        <stop offset="0.42" stopColor="#1a6fbb" />
-        <stop offset="0.5" stopColor="#2782c9" />
-        <stop offset="0.58" stopColor="#155fa0" />
         <stop offset="1" stopColor="#0e5290" />
       </linearGradient>
-      <linearGradient id="iabar-logo-streak" x1="0" y1="0" x2="128" y2="96" gradientUnits="userSpaceOnUse">
-        <stop offset="0.3" stopColor="#FFC56B" stopOpacity="0" />
-        <stop offset="0.44" stopColor="#FFC56B" stopOpacity="0.45" />
-        <stop offset="0.5" stopColor="#FF8A66" stopOpacity="0.55" />
-        <stop offset="0.56" stopColor="#FF5FA2" stopOpacity="0.4" />
-        <stop offset="0.64" stopColor="#FF5FA2" stopOpacity="0" />
+      <linearGradient id="iabar-logo-warm" x1="64" y1="40" x2="64" y2="123" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stopColor="#FFD23A" />
+        <stop offset="0.5" stopColor="#FF7A2F" />
+        <stop offset="1" stopColor="#FF2E8B" />
       </linearGradient>
-      <linearGradient id="iabar-logo-ag" x1="64" y1="28" x2="64" y2="106" gradientUnits="userSpaceOnUse">
-        <stop offset="0" stopColor="#f6f8fa" />
-        <stop offset="0.2" stopColor="#dadee3" />
-        <stop offset="0.5" stopColor="#b4bac2" />
-        <stop offset="0.54" stopColor="#cfd4da" />
-        <stop offset="0.8" stopColor="#979ea7" />
-        <stop offset="1" stopColor="#838a93" />
-      </linearGradient>
-      <linearGradient id="iabar-logo-spark" x1="64" y1="58" x2="64" y2="84" gradientUnits="userSpaceOnUse">
-        <stop offset="0" stopColor="#4c5158" />
-        <stop offset="1" stopColor="#23262b" />
-      </linearGradient>
-      <filter id="iabar-logo-sh" x="-40%" y="-40%" width="180%" height="180%">
-        <feGaussianBlur in="SourceAlpha" stdDeviation="3.5" />
-        <feOffset dy="2.5" />
-        <feComponentTransfer>
-          <feFuncA type="linear" slope="0.45" />
-        </feComponentTransfer>
-        <feMerge>
-          <feMergeNode />
-          <feMergeNode in="SourceGraphic" />
-        </feMerge>
-      </filter>
     </defs>
-    <g clipPath="url(#iabar-logo-r)">
-      <rect x="2" y="2" width="124" height="124" fill="url(#iabar-logo-ti)" />
-      <rect x="2" y="2" width="124" height="124" fill="url(#iabar-logo-streak)" />
-      <ellipse cx="40" cy="20" rx="78" ry="48" fill="#ffffff" fillOpacity="0.06" />
+    <g clipPath="url(#iabar-logo-bub)">
+      <rect x="0" y="0" width="128" height="128" fill="url(#iabar-logo-warm)" />
+      <rect x="0" y="0" width="128" height="40" fill="url(#iabar-logo-az)" />
     </g>
-    <rect x="3.5" y="3.5" width="121" height="121" rx="28.5" fill="none" stroke="#ffffff" strokeOpacity="0.1" strokeWidth="1" />
-    <g filter="url(#iabar-logo-sh)">
-      <path d="M46 82 L36 105 L64 84 Z" fill="url(#iabar-logo-ag)" />
-      <path
-        d="M42 30 H86 A18 18 0 0 1 104 48 V68 A18 18 0 0 1 86 86 H42 A18 18 0 0 1 24 68 V48 A18 18 0 0 1 42 30 Z"
-        fill="url(#iabar-logo-ag)"
-      />
-    </g>
+    <circle cx="28" cy="24" r="5.5" fill="#FF5F57" />
+    <circle cx="46" cy="24" r="5.5" fill="#FEBC2E" />
+    <circle cx="64" cy="24" r="5.5" fill="#28C840" />
     <path
-      d="M42 30 H86 A18 18 0 0 1 104 48 V68 A18 18 0 0 1 86 86 H42 A18 18 0 0 1 24 68 V48 A18 18 0 0 1 42 30 Z"
-      fill="none"
-      stroke="#ffffff"
-      strokeOpacity="0.55"
-      strokeWidth="1.2"
-    />
-    <circle cx="41" cy="44" r="3.6" fill="#565b62" />
-    <circle cx="54" cy="44" r="3.6" fill="#565b62" />
-    <circle cx="67" cy="44" r="3.6" fill="#565b62" />
-    <line x1="26" y1="55" x2="102" y2="55" stroke="#000000" strokeOpacity="0.14" strokeWidth="1.6" />
-    <path
-      d="M64 59 C65.7 67.5 69.5 70.3 79 71.5 C69.5 72.7 65.7 75.5 64 84 C62.3 75.5 58.5 72.7 49 71.5 C58.5 70.3 62.3 67.5 64 59 Z"
-      fill="url(#iabar-logo-spark)"
+      d="M64 44 C66.5 65 72 71 95 74 C72 77 66.5 83 64 104 C61.5 83 56 77 33 74 C56 71 61.5 65 64 44 Z"
+      fill="#ffffff"
     />
   </svg>
 )

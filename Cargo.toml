@@ -25,6 +25,14 @@ authors = ["iabar contributors"]
 iacoder-hooks = { git = "https://github.com/infiniact/iacoder.git", branch = "main" }
 # Wave A made this compile to wasm (pure types + traits; native I/O gated).
 iacoder-core = { git = "https://github.com/infiniact/iacoder.git", branch = "main" }
+# ADR-0103 brought context (compaction) + tools across the wasm gate; ADR-0104
+# brings the agent loop itself — `iacoder-agent` builds green on wasm32 with
+# provider+tools host-injected and shell/keyring/rig/hook-exec absent by `cfg`.
+# These are the currently-wireable engine crates; `iacoder-mcp` waits on
+# HTTP/SSE-only (stdio can't cross wasm — ADR-0104 §4).
+iacoder-context = { git = "https://github.com/infiniact/iacoder.git", branch = "main" }
+iacoder-tools = { git = "https://github.com/infiniact/iacoder.git", branch = "main" }
+iacoder-agent = { git = "https://github.com/infiniact/iacoder.git", branch = "main" }
 
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"

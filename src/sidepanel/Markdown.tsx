@@ -6,6 +6,17 @@ import rehypeKatex from 'rehype-katex'
 import hljs from 'highlight.js/lib/common'
 import 'katex/dist/katex.min.css'
 
+// KaTeX options. CJK output routinely lands in math mode — either real math
+// with Chinese labels, or prose with full-width parens mis-detected as `$…$`.
+// KaTeX renders those glyphs fine; the only fallout is a `unicodeTextInMathMode`
+// warning per character, which floods the console. Downgrade that one code to
+// 'ignore' (keep 'warn' for everything else) and never throw on bad input — a
+// malformed expression should degrade to its source, not blow up the render.
+const katexOptions = {
+  throwOnError: false,
+  strict: (code: string) => (code === 'unicodeTextInMathMode' ? 'ignore' : 'warn'),
+}
+
 /** Renders assistant message content as Markdown with GFM tables/lists, LaTeX
  *  math (KaTeX), Mermaid diagrams, and syntax-highlighted code blocks. */
 export const Markdown = memo(function Markdown({ content }: { content: string }) {
@@ -13,7 +24,7 @@ export const Markdown = memo(function Markdown({ content }: { content: string })
     <div className="md">
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[rehypeKatex]}
+        rehypePlugins={[[rehypeKatex, katexOptions]]}
         components={{ pre: CodeBlock as never }}
       >
         {preprocess(content)}

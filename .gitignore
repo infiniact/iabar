@@ -45,3 +45,8 @@ key.pem
 
 # Packaged extension zips (build artifacts)
 iabar-*.zip
+*.pem
+
+# Self-host install bundle (crx + profile, local only)
+selfhost/
+*.crx

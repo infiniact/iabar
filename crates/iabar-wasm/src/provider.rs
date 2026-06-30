@@ -147,6 +147,10 @@ impl LlmProvider for AnthropicProvider {
             .map_err(|e| ProviderError::Transport(e.to_string()))?;
 
         let status = resp.status();
+        // Trusted-time sample: the provider's server clock (see server_time).
+        if let Some(d) = resp.headers().get("date").and_then(|v| v.to_str().ok()) {
+            crate::server_time::set(d);
+        }
         let parsed: WireResp = resp
             .json()
             .await
@@ -194,6 +198,9 @@ struct DriverResult {
     input_tokens: u32,
     output_tokens: u32,
     stop_reason: String,
+    /// Provider's `Date` response header (RFC 1123), for the trusted-time
+    /// watermark. `None` if the provider omitted it.
+    server_date: Option<String>,
 }
 
 /// Build an `AnthropicProvider` and drive a turn through `LlmProvider::chat`,
@@ -204,12 +211,18 @@ pub async fn provider_chat(req: JsValue) -> Result<JsValue, JsValue> {
     let req: crate::anthropic::ChatRequest = serde_wasm_bindgen::from_value(req)
         .map_err(|e| JsValue::from_str(&format!("bad request: {e}")))?;
 
-    // Route to the selected provider's LlmProvider impl.
+    // Route to the selected provider's LlmProvider impl. Anthropic is the only
+    // non-OpenAI wire format; every other id uses the generic OpenAI-compatible
+    // provider with the supplied base URL.
     let provider: Box<dyn LlmProvider> = match req.provider.as_deref() {
-        Some("deepseek") => {
-            Box::new(crate::deepseek::DeepSeekProvider::new(req.api_key.clone(), req.model.clone()))
+        Some("anthropic") | None => {
+            Box::new(AnthropicProvider::new(req.api_key.clone(), req.model.clone()))
         }
-        _ => Box::new(AnthropicProvider::new(req.api_key.clone(), req.model.clone())),
+        _ => Box::new(crate::openai_compat::OpenAiCompatProvider::new(
+            req.base_url.clone(),
+            req.api_key.clone(),
+            req.model.clone(),
+        )),
     };
 
     // Assemble an engine ChatRequest from the JS payload.
@@ -269,6 +282,7 @@ pub async fn provider_chat(req: JsValue) -> Result<JsValue, JsValue> {
         input_tokens,
         output_tokens,
         stop_reason,
+        server_date: crate::server_time::take(),
     };
     serde_wasm_bindgen::to_value(&out).map_err(|e| JsValue::from_str(&format!("encode: {e}")))
 }

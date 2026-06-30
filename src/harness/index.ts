@@ -3,6 +3,7 @@
 // the JS-side types stay in one place.
 
 import init, {
+  agent_run,
   anthropic_chat,
   hook_events,
   is_valid_event,
@@ -75,9 +76,12 @@ export interface ChatResult {
 /** Request shape for {@link anthropicChat} / {@link providerChat}. */
 export interface ChatRequest {
   apiKey: string
-  /** Provider id: 'anthropic' (default) or 'deepseek'. Routes to the matching
-   *  LlmProvider impl in wasm. */
+  /** Provider id: 'anthropic' (default) routes to the Anthropic impl; any other
+   *  id routes to the generic OpenAI-compatible impl in wasm. */
   provider?: string
+  /** OpenAI-compatible base URL for non-Anthropic providers (e.g.
+   *  `https://api.deepseek.com`). Ignored for the Anthropic route. */
+  baseUrl?: string
   model?: string
   system?: string
   messages: ChatTurn[]
@@ -95,6 +99,9 @@ export interface ProviderResult {
   input_tokens: number
   output_tokens: number
   stop_reason: string
+  /** Provider's `Date` response header (RFC 1123), for the trusted-time
+   *  watermark. Null if the provider omitted it. */
+  server_date: string | null
 }
 
 /**
@@ -105,4 +112,66 @@ export interface ProviderResult {
  */
 export function providerChat(req: ChatRequest): Promise<ProviderResult> {
   return provider_chat(req) as Promise<ProviderResult>
+}
+
+// --- Agent loop (ADR-0103/0104) — the real `iacoder-agent` runtime on wasm ---
+
+/** Request shape for {@link agentRun}. `history` is the prior transcript;
+ *  `userPrompt` is the new turn that opens the run. */
+export interface AgentRequest {
+  apiKey: string
+  /** `anthropic` → Anthropic wire format; any other id → OpenAI-compatible. */
+  provider?: string
+  /** OpenAI-compatible base URL for non-Anthropic providers. */
+  baseUrl?: string
+  model?: string
+  system?: string
+  history?: ChatTurn[]
+  userPrompt: string
+  maxTurns?: number
+  /** Compaction window in tokens; the pipeline compacts at ~60% of this. */
+  contextWindow?: number
+}
+
+/** A streamed event from the agent loop. `type` discriminates the payload;
+ *  unknown engine events arrive as `{ type: 'other', debug }` rather than being
+ *  dropped, so no observability is silently lost. */
+export type AgentEvent =
+  | { type: 'user_prompt'; text: string }
+  | { type: 'assistant_delta'; text: string }
+  | { type: 'reasoning_delta'; text: string }
+  | { type: 'pre_compact'; beforeMessages: number }
+  | { type: 'post_compact'; afterMessages: number; droppedMessages: number }
+  | { type: 'force_compact'; reason: string }
+  | { type: 'compact_delta'; sources: string[] }
+  | { type: 'permission_request'; id: string; tool: string }
+  | { type: 'permission_denied'; id: string; tool: string; reason: string }
+  | { type: 'tool_call_start'; id: string; name: string }
+  | { type: 'tool_call_args'; id: string; delta: string }
+  | { type: 'tool_call_result'; id: string; name: string; isError: boolean; output: string }
+  | { type: 'other'; debug: string }
+
+/** Final projection returned when an {@link agentRun} settles. */
+export interface AgentResult {
+  text: string
+  stop_reason: string
+  turns: number
+  input_tokens: number
+  output_tokens: number
+  /** Provider's `Date` header from the run's last call, for trusted-time. */
+  server_date: string | null
+}
+
+/**
+ * Drive one user turn through the real engine agent loop (`iacoder-agent`) on
+ * wasm — tool dispatch + context compaction included. `onEvent` fires once per
+ * streamed {@link AgentEvent} (deltas, PreCompact/PostCompact, tool calls); the
+ * promise resolves to the final {@link AgentResult}. Every provider call — chat
+ * and compaction alike — exits through the one audited fetch seam.
+ */
+export function agentRun(
+  req: AgentRequest,
+  onEvent: (ev: AgentEvent) => void,
+): Promise<AgentResult> {
+  return agent_run(req, (ev: unknown) => onEvent(ev as AgentEvent)) as Promise<AgentResult>
 }

@@ -160,35 +160,37 @@ export const EyeOffIcon = ({ size }: P) => (
 )
 
 // The IABar mark: the chat bubble IS the icon (no background badge). A browser
-// window — azure title bar with red/yellow/green traffic-light dots — over a
-// warm gold→orange→magenta body holding a big white AI spark, with a chat tail.
-// Matches the extension icon.
+// window — cyan-blue title bar with red/yellow/green traffic-light dots — over a
+// white body holding a cyan-blue AI spark, with a chat tail. Matches the
+// extension icon (assets/icon.svg).
 export const Logo = ({ size = 30 }: P) => (
   <svg width={size} height={size} viewBox="0 0 128 128" fill="none">
     <defs>
       <clipPath id="iabar-logo-bub">
         <path d="M30 8 H98 A22 22 0 0 1 120 30 V82 A22 22 0 0 1 98 104 H60 L40 123 L52 104 H30 A22 22 0 0 1 8 82 V30 A22 22 0 0 1 30 8 Z" />
       </clipPath>
-      <linearGradient id="iabar-logo-az" x1="64" y1="8" x2="64" y2="40" gradientUnits="userSpaceOnUse">
-        <stop offset="0" stopColor="#2f87cf" />
-        <stop offset="1" stopColor="#0e5290" />
-      </linearGradient>
-      <linearGradient id="iabar-logo-warm" x1="64" y1="40" x2="64" y2="123" gradientUnits="userSpaceOnUse">
-        <stop offset="0" stopColor="#FFD23A" />
-        <stop offset="0.5" stopColor="#FF7A2F" />
-        <stop offset="1" stopColor="#FF2E8B" />
+      <linearGradient id="iabar-logo-cb" x1="64" y1="8" x2="64" y2="40" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stopColor="#23B0D2" />
+        <stop offset="1" stopColor="#0E7FA8" />
       </linearGradient>
     </defs>
     <g clipPath="url(#iabar-logo-bub)">
-      <rect x="0" y="0" width="128" height="128" fill="url(#iabar-logo-warm)" />
-      <rect x="0" y="0" width="128" height="40" fill="url(#iabar-logo-az)" />
+      <rect x="0" y="0" width="128" height="128" fill="#ffffff" />
+      <rect x="0" y="0" width="128" height="40" fill="url(#iabar-logo-cb)" />
     </g>
+    <path
+      d="M30 8 H98 A22 22 0 0 1 120 30 V82 A22 22 0 0 1 98 104 H60 L40 123 L52 104 H30 A22 22 0 0 1 8 82 V30 A22 22 0 0 1 30 8 Z"
+      fill="none"
+      stroke="#1597C4"
+      strokeWidth={4}
+      strokeLinejoin="round"
+    />
     <circle cx="28" cy="24" r="5.5" fill="#FF5F57" />
     <circle cx="46" cy="24" r="5.5" fill="#FEBC2E" />
     <circle cx="64" cy="24" r="5.5" fill="#28C840" />
     <path
       d="M64 44 C66.5 65 72 71 95 74 C72 77 66.5 83 64 104 C61.5 83 56 77 33 74 C56 71 61.5 65 64 44 Z"
-      fill="#ffffff"
+      fill="#1597C4"
     />
   </svg>
 )

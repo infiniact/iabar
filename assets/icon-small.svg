@@ -1,6 +1,6 @@
 <svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
   <!-- IABar mark, simplified for tiny sizes (16/32px toolbar). Same browser
-       bubble — cyan-blue header + white body + cyan-blue border — but the
+       bubble — Apple-blue header + white body + Apple-blue border — but the
        traffic-light dots are dropped and the AI spark is enlarged to be the
        hero, so the mark stays legible when the detail collapses. -->
   <defs>
@@ -8,7 +8,7 @@
       <path d="M30 8 H98 A22 22 0 0 1 120 30 V82 A22 22 0 0 1 98 104 H60 L40 123 L52 104 H30 A22 22 0 0 1 8 82 V30 A22 22 0 0 1 30 8 Z"/>
     </clipPath>
     <linearGradient id="cb" x1="64" y1="8" x2="64" y2="40" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#23B0D2"/><stop offset="1" stop-color="#0E7FA8"/>
+      <stop offset="0" stop-color="#5BB0FF"/><stop offset="1" stop-color="#0A6CE6"/>
     </linearGradient>
   </defs>
 
@@ -17,7 +17,7 @@
     <rect x="0" y="0" width="128" height="34" fill="url(#cb)"/>
   </g>
 
-  <path d="M30 8 H98 A22 22 0 0 1 120 30 V82 A22 22 0 0 1 98 104 H60 L40 123 L52 104 H30 A22 22 0 0 1 8 82 V30 A22 22 0 0 1 30 8 Z" fill="none" stroke="#1597C4" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M30 8 H98 A22 22 0 0 1 120 30 V82 A22 22 0 0 1 98 104 H60 L40 123 L52 104 H30 A22 22 0 0 1 8 82 V30 A22 22 0 0 1 30 8 Z" fill="none" stroke="#0A84FF" stroke-width="5" stroke-linejoin="round"/>
 
-  <path d="M64 38 C67.5 68 75 76 106 80 C75 84 67.5 92 64 122 C60.5 92 53 84 22 80 C53 76 60.5 68 64 38 Z" fill="#1597C4"/>
+  <path d="M64 38 C67.5 68 75 76 106 80 C75 84 67.5 92 64 122 C60.5 92 53 84 22 80 C53 76 60.5 68 64 38 Z" fill="#0A84FF"/>
 </svg>

@@ -1357,6 +1357,10 @@ select.input {
   line-height: 1.6;
   word-break: break-word;
   overflow-wrap: anywhere;
+  /* The bubble is pre-wrap (to keep plain user newlines); Markdown must collapse
+     whitespace, else react-markdown's inter-element text nodes show as blank
+     lines after every block. Code blocks keep `pre` via the <pre> element. */
+  white-space: normal;
 }
 .md > :first-child { margin-top: 0; }
 .md > :last-child { margin-bottom: 0; }

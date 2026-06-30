@@ -34,8 +34,13 @@ function preprocess(src: string): string {
       i % 2 === 1
         ? seg
         : seg
-            .replace(/[\u200B-\u200D\uFEFF]/g, '')
-            .replace(/^[ \t\u00A0\u3000]+$/gm, '')
+            // Drop zero-width chars; normalize unicode line separators.
+            .replace(/[\u200B-\u200D\u2060\uFEFF]/g, '')
+            .replace(/[\u2028\u2029]/g, '\n')
+            // Blank out lines that are only whitespace -- any variant (nbsp,
+            // ideographic/thin spaces, etc). JS `\S` already excludes all of
+            // them, so these would otherwise render as empty paragraphs.
+            .replace(/^[^\S\n]+$/gm, '')
             .replace(/\n{3,}/g, '\n\n')
             .replace(/\\\[([\s\S]+?)\\\]/g, (_, m) => `$$${m}$$`)
             .replace(/\\\(([\s\S]+?)\\\)/g, (_, m) => `$${m}$`),

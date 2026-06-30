@@ -2,6 +2,7 @@
 // conversations.
 
 import type { ChatTurn } from '../harness'
+import type { PageContext } from './page-context'
 
 export type ProviderId =
   | 'anthropic'
@@ -217,10 +218,17 @@ export async function saveSettings(s: Settings): Promise<void> {
   await chrome.storage?.local.set({ [SETTINGS_KEY]: s })
 }
 
+/** A persisted chat turn. User turns keep the page contexts (@) attached when
+ *  sent, so they survive reloads, show as chips on the bubble, and can be
+ *  recalled (with their attachments) from input history. */
+export interface StoredTurn extends ChatTurn {
+  attachments?: PageContext[]
+}
+
 export interface Conversation {
   id: string
   title: string
-  messages: ChatTurn[]
+  messages: StoredTurn[]
   updatedAt: number
 }
 

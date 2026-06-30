@@ -1437,3 +1437,13 @@ select.input {
 [data-theme='dark'] .hljs-class .hljs-title, [data-theme='dark'] .hljs-function .hljs-title { color: #d2a8ff; }
 [data-theme='dark'] .hljs-type, [data-theme='dark'] .hljs-params,
 [data-theme='dark'] .hljs-variable, [data-theme='dark'] .hljs-attribute { color: #ffa657; }
+
+/* @-page references shown on a sent user bubble */
+.bubble__refs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+.chip--ref {
+  font-size: 11px;
+  padding: 1px 7px;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+  border-radius: 999px;
+}

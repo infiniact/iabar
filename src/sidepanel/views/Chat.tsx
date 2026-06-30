@@ -9,6 +9,7 @@ import {
   type Conversation,
   type ProviderId,
   type Settings,
+  type StoredTurn,
 } from '../../lib/store'
 import {
   capturePageContext,
@@ -37,7 +38,7 @@ import { useClickOutside } from '../useClickOutside'
 import { useT } from '../../lib/i18n'
 import { Markdown } from '../Markdown'
 
-interface Msg extends ChatTurn {
+interface Msg extends StoredTurn {
   pending?: boolean
 }
 
@@ -74,6 +75,14 @@ export function ChatView({
   // calls) — surfaced from the loop's event stream, never persisted.
   const [activity, setActivity] = useState<string[]>([])
   const [picker, setPicker] = useState<{ tabs: RefTab[]; loading: boolean } | null>(null)
+  // Shell-style ↑/↓ recall of prior user turns. `histIdx` indexes the user
+  // messages (null = editing a fresh draft); `draft` is the in-progress input
+  // stashed when we start navigating, restored when ↓ returns past the newest.
+  const [histIdx, setHistIdx] = useState<number | null>(null)
+  const draftRef = useRef<{ content: string; attachments: PageContext[] }>({
+    content: '',
+    attachments: [],
+  })
   const logRef = useRef<HTMLDivElement>(null)
   const taRef = useRef<HTMLTextAreaElement>(null)
   const pickerRef = useRef<HTMLDivElement>(null)
@@ -94,6 +103,7 @@ export function ChatView({
     setMessages(conversation.messages)
     setAttachments([])
     setActivity([])
+    setHistIdx(null)
     setError(null)
   }, [conversation.id])
 
@@ -149,27 +159,24 @@ export function ChatView({
     }
     setError(null)
 
-    // The agent loop takes the prior transcript as history and the new message
-    // as the prompt; we render the user turn plus a pending assistant bubble.
-    const prior: ChatTurn[] = messages.map(stripPending)
-    const userTurn: ChatTurn = { role: 'user', content: text }
-    setMessages([...prior, userTurn, { role: 'assistant', content: '', pending: true }])
+    // `base` is the committed transcript (Msg[], carrying attachments); the user
+    // turn keeps its @ page contexts so they persist + show as chips. The engine
+    // gets a *reconstructed* history (page context folded into each user turn)
+    // plus the new prompt — but we persist the original `base`, not that.
+    const base = messages.filter((m) => !m.pending)
+    const atts = attachments
+    const userTurn: Msg = { role: 'user', content: text, attachments: atts.length ? atts : undefined }
+    setMessages([...base, userTurn, { role: 'assistant', content: '', pending: true }])
     setInput('')
     setActivity([])
+    setHistIdx(null)
     setBusy(true)
 
-    // Page context (@) is per-turn, so it must ride in the user prompt — the
-    // engine ignores `system` once there's prior history (it's the cache
-    // anchor, carried by the transcript), which would otherwise drop the page.
-    const contextBlock = attachments.length
-      ? `The user attached page context with @:\n${attachments
-          .map(
-            (a, i) =>
-              `[${i + 1}] ${a.title} <${a.url}>\n${a.selection ? `selection: ${a.selection}\n` : ''}${a.text}`,
-          )
-          .join('\n\n')}\n\n`
-      : ''
-    const userPrompt = `${contextBlock}${text}`
+    // Page context (@) must ride in the user prompt — the engine ignores
+    // `system` once there's prior history (it's the cache anchor, carried by the
+    // transcript), which would otherwise drop the page.
+    const history: ChatTurn[] = base.map(toEngineTurn)
+    const userPrompt = buildPrompt(atts, text)
 
     let acc = ''
     try {
@@ -180,7 +187,7 @@ export function ChatView({
           baseUrl: baseUrlFor(settings.provider),
           model: cfg.model,
           system: SYSTEM_BASE,
-          history: prior,
+          history,
           userPrompt,
           // Agent mode lets the loop iterate (tool calls); Ask keeps it short.
           maxTurns: mode === 'agent' ? 12 : 6,
@@ -216,19 +223,19 @@ export function ChatView({
       )
       // Every run yields a trusted server timestamp from its last call.
       recordServerDate(result.server_date)
-      const next: Msg[] = [...prior, userTurn, { role: 'assistant', content: result.text || acc }]
+      const next: Msg[] = [...base, userTurn, { role: 'assistant', content: result.text || acc }]
       setMessages(next)
       setAttachments([])
       persist(next)
     } catch (e) {
-      setMessages([...prior, userTurn])
+      setMessages([...base, userTurn])
       setError(String(e))
     } finally {
       setBusy(false)
     }
   }
 
-  function persist(msgs: ChatTurn[]) {
+  function persist(msgs: StoredTurn[]) {
     const firstUser = msgs.find((m) => m.role === 'user')
     onChange({
       ...conversation,
@@ -236,6 +243,40 @@ export function ChatView({
       messages: msgs,
       updatedAt: Date.now(),
     })
+  }
+
+  // Shell-style history: recall prior user turns (text + their @ attachments).
+  // Returns true if it handled the key (so the caller suppresses the default
+  // caret move). Only fires at the first/last line so multi-line edits work.
+  function navHistory(dir: -1 | 1): boolean {
+    const hist = messages.filter((m) => m.role === 'user')
+    if (!hist.length) return false
+    let idx = histIdx
+    if (dir === -1) {
+      if (idx === null) {
+        draftRef.current = { content: input, attachments }
+        idx = hist.length - 1
+      } else if (idx > 0) {
+        idx -= 1
+      } else {
+        return true // already at the oldest
+      }
+    } else {
+      if (idx === null) return false
+      if (idx < hist.length - 1) {
+        idx += 1
+      } else {
+        // Past the newest → back to the in-progress draft.
+        setHistIdx(null)
+        setInput(draftRef.current.content)
+        setAttachments(draftRef.current.attachments)
+        return true
+      }
+    }
+    setHistIdx(idx)
+    setInput(hist[idx].content)
+    setAttachments(hist[idx].attachments ?? [])
+    return true
   }
 
   // Quick-action: drop a starter prompt into the composer and focus it.
@@ -282,6 +323,15 @@ export function ChatView({
         ) : (
           messages.map((m, i) => (
             <div key={i} className={`bubble bubble--${m.role}`}>
+              {m.attachments && m.attachments.length > 0 && (
+                <div className="bubble__refs">
+                  {m.attachments.map((a) => (
+                    <span className="chip chip--ref" key={a.url} title={a.url}>
+                      @{hostOf(a.url)}
+                    </span>
+                  ))}
+                </div>
+              )}
               {m.pending && !m.content ? (
                 <span className="bubble__typing" aria-label="thinking">
                   <span />
@@ -364,6 +414,14 @@ export function ChatView({
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault()
                 void send()
+                return
+              }
+              const el = e.currentTarget
+              // ↑ on the first line / ↓ on the last line walks input history.
+              if (e.key === 'ArrowUp' && !el.value.slice(0, el.selectionStart).includes('\n')) {
+                if (navHistory(-1)) e.preventDefault()
+              } else if (e.key === 'ArrowDown' && !el.value.slice(el.selectionStart).includes('\n')) {
+                if (navHistory(1)) e.preventDefault()
               }
             }}
           />
@@ -459,7 +517,24 @@ export function ChatView({
   )
 }
 
-function stripPending(m: Msg): ChatTurn {
+/** Fold a turn's @ page contexts into its text the way the model should see it. */
+function buildPrompt(atts: PageContext[], text: string): string {
+  if (!atts.length) return text
+  const block = atts
+    .map(
+      (a, i) =>
+        `[${i + 1}] ${a.title} <${a.url}>\n${a.selection ? `selection: ${a.selection}\n` : ''}${a.text}`,
+    )
+    .join('\n\n')
+  return `The user attached page context with @:\n${block}\n\n${text}`
+}
+
+/** Project a stored turn to what the engine consumes (role + content), folding
+ *  a user turn's attachments into its content so context survives across turns. */
+function toEngineTurn(m: Msg): ChatTurn {
+  if (m.role === 'user' && m.attachments?.length) {
+    return { role: 'user', content: buildPrompt(m.attachments, m.content) }
+  }
   return { role: m.role, content: m.content }
 }
 

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { agentRun, type ChatTurn } from '../../harness'
+import { BROWSER_TOOLS, browserToolDispatch } from '../../lib/browser-tools'
 import { modelLabel } from '../../lib/models'
 import { recordServerDate } from '../../lib/license/trusted-time'
 import {
@@ -20,6 +21,7 @@ import {
   type PageContext,
   type RefTab,
 } from '../../lib/page-context'
+import { hasOrigin } from '../../lib/origin-permission'
 import {
   AppsIcon,
   AtIcon,
@@ -202,7 +204,13 @@ export function ChatView({
     // gets a *reconstructed* history (page context folded into each user turn)
     // plus the new prompt — but we persist the original `base`, not that.
     const base = messages.filter((m) => !m.pending)
-    const manual = attachments
+    // Revoke is authoritative (ADR 0009): a page attached earlier whose origin
+    // the user has since removed (Settings → Sites) must not be re-sent. Re-check
+    // the manual @ chips against the live grants and drop any no longer allowed —
+    // from both the outgoing turn and the visible composer state.
+    const grants = await Promise.all(attachments.map((a) => hasOrigin(a.url)))
+    const manual = attachments.filter((_, i) => grants[i])
+    if (manual.length !== attachments.length) setAttachments(manual)
     setInput('')
     setActivity([])
     setHistIdx(null)
@@ -238,6 +246,7 @@ export function ChatView({
           userPrompt,
           // Agent mode lets the loop iterate (tool calls); Ask keeps it short.
           maxTurns: mode === 'agent' ? 12 : 6,
+          tools: BROWSER_TOOLS,
         },
         (ev) => {
           switch (ev.type) {
@@ -267,7 +276,7 @@ export function ChatView({
               break
           }
         },
-        toolDispatch,
+        browserToolDispatch,
       )
       // Every run yields a trusted server timestamp from its last call.
       recordServerDate(result.server_date)
@@ -620,34 +629,6 @@ export function ChatView({
       )}
     </div>
   )
-}
-
-/** Host handler for the wasm browser tools (the Rust→JS seam). Given a tool
- *  name + its JSON args, run the chrome-backed work and return a string the
- *  model reads. Errors are returned as text (not thrown) so the loop continues. */
-async function toolDispatch(name: string, argsJson: string): Promise<string> {
-  if (name === 'read_page') {
-    let url: string | undefined
-    try {
-      url = (JSON.parse(argsJson || '{}') as { url?: string }).url
-    } catch {
-      // ignore malformed args → treat as the current tab
-    }
-    let tab: RefTab | null
-    if (url) {
-      const tabs = await listReferenceableTabs()
-      tab = tabs.find((tb) => tb.url === url) ?? tabs.find((tb) => tb.url.startsWith(url!)) ?? null
-    } else {
-      tab = await activeReferenceableTab()
-    }
-    if (!tab) return url ? `read_page: no open tab matches ${url}.` : 'read_page: no readable active tab.'
-    const ctx = await capturePageContextIfGranted(tab)
-    if (!ctx) {
-      return `read_page: "${tab.url}" is not accessible yet. Ask the user to @-reference it once to grant access.`
-    }
-    return `# ${ctx.title}\n<${ctx.url}>\n\n${ctx.text}`
-  }
-  return `Unknown tool: ${name}`
 }
 
 /** Fold a turn's @ page contexts into its text the way the model should see it. */

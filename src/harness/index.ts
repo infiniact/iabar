@@ -131,6 +131,9 @@ export interface AgentRequest {
   maxTurns?: number
   /** Compaction window in tokens; the pipeline compacts at ~60% of this. */
   contextWindow?: number
+  /** Host browser-tool definitions (name/description/input_schema); each becomes
+   *  a tool the loop can call, dispatched through the `onTool` callback. */
+  tools?: { name: string; description: string; input_schema: unknown }[]
 }
 
 /** A streamed event from the agent loop. `type` discriminates the payload;

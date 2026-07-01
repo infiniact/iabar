@@ -2,16 +2,16 @@ import { useState } from 'react'
 import { useT } from '../../lib/i18n'
 import type { LicenseState } from '../../lib/license/client'
 import { trustedNow } from '../../lib/license/trusted-time'
-import { useLicense } from '../useLicense'
+import type { useLicense } from '../useLicense'
 
 type Busy = { state: 'idle' } | { state: 'busy' } | { state: 'fail'; msg: string }
 
 /** License panel: shows the current (offline-verified) state and lets the user
- *  activate this device or rebind via a recovery code. Status-only — it does
- *  not gate any features. */
-export function LicenseSection() {
+ *  activate this device or rebind via a recovery code. Takes the shared license
+ *  hook from the account modal so state stays in sync. */
+export function LicenseSection({ lic }: { lic: ReturnType<typeof useLicense> }) {
   const t = useT()
-  const { state, activate, rebind, unbind, startTrial } = useLicense()
+  const { state, activate, rebind, unbind, startTrial, buy } = lic
 
   const [key, setKey] = useState('')
   const [code, setCode] = useState('')
@@ -92,6 +92,18 @@ export function LicenseSection() {
         <label className="field__label">{t('license.title')}</label>
         <LicenseBadge state={state} />
       </div>
+
+      {/* Primary CTA: purchase. Shown until there's a paid (non-trial) license.
+          Opens Stripe checkout in a new tab; on return the session re-syncs and
+          the license activates automatically — no code to enter. */}
+      {!(active && !isTrial) && (
+        <div className="license__buy">
+          <button className="btn btn--primary" onClick={() => void buy()}>
+            {t('license.buy')}
+          </button>
+          <span className="field__note">{t('license.buyHint')}</span>
+        </div>
+      )}
 
       {active && state?.claims ? (
         isTrial ? (

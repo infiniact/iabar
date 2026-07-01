@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { providerChat } from '../../harness'
 import { fetchModels, modelLabel } from '../../lib/models'
 import {
@@ -10,10 +10,10 @@ import {
   type Settings,
   type ThemeMode,
 } from '../../lib/store'
+import { listGrantedOrigins, revokePattern } from '../../lib/origin-permission'
 import { useT } from '../../lib/i18n'
-import { EyeIcon, EyeOffIcon } from '../icons'
+import { EyeIcon, EyeOffIcon, TrashIcon } from '../icons'
 import { FilterSelect } from '../FilterSelect'
-import { LicenseSection } from './LicenseSection'
 
 type Status =
   | { state: 'idle' }
@@ -21,7 +21,19 @@ type Status =
   | { state: 'ok'; msg?: string }
   | { state: 'fail'; msg: string }
 
-type SettingsTab = 'provider' | 'language' | 'theme' | 'license'
+type SettingsTab = 'provider' | 'sites' | 'language' | 'theme'
+
+const SITES_PER_PAGE = 8
+
+/** A local (localhost / 127.0.0.1) origin needs no network egress. */
+function isLocalOrigin(pattern: string): boolean {
+  return /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?\//.test(pattern)
+}
+
+/** Strip the trailing `/*` from an origin pattern for display. */
+function displayOrigin(pattern: string): string {
+  return pattern.replace(/\/\*$/, '')
+}
 
 export function SettingsView({
   settings,
@@ -47,6 +59,30 @@ export function SettingsView({
   const [test, setTest] = useState<Status>({ state: 'idle' })
   const [saved, setSaved] = useState(false)
   const [tab, setTab] = useState<SettingsTab>(initialTab)
+  // Runtime-granted site origins (ADR 0009) — everything the user has approved
+  // for page reads or tool endpoints, minus the static manifest hosts.
+  const [sites, setSites] = useState<string[] | null>(null)
+  const [sitesPage, setSitesPage] = useState(0)
+
+  useEffect(() => {
+    if (tab !== 'sites') return
+    let live = true
+    listGrantedOrigins().then((o) => live && setSites(o))
+    return () => {
+      live = false
+    }
+  }, [tab])
+
+  const siteCount = sites?.length ?? 0
+  const sitesPages = Math.max(1, Math.ceil(siteCount / SITES_PER_PAGE))
+  // Clamp the page whenever the list shrinks (e.g. after a revoke empties one).
+  const page = Math.min(sitesPage, sitesPages - 1)
+  const pageSites = (sites ?? []).slice(page * SITES_PER_PAGE, (page + 1) * SITES_PER_PAGE)
+
+  async function revokeSite(pattern: string) {
+    await revokePattern(pattern)
+    setSites(await listGrantedOrigins())
+  }
 
   const meta = PROVIDERS.find((p) => p.id === provider)!
   const cfg = byProvider[provider]
@@ -131,9 +167,9 @@ export function SettingsView({
         {(
           [
             ['provider', t('settings.provider')],
+            ['sites', t('settings.sites')],
             ['language', t('settings.language')],
             ['theme', t('settings.theme')],
-            ['license', t('license.title')],
           ] as const
         ).map(([id, label]) => (
           <button
@@ -267,6 +303,68 @@ export function SettingsView({
         </>
       )}
 
+      {tab === 'sites' && (
+        <section className="field">
+          <span className="field__note">{t('settings.sitesDesc')}</span>
+          {sites !== null && sites.length === 0 && (
+            <div className="sites__empty">{t('settings.sitesEmpty')}</div>
+          )}
+          {sites !== null && sites.length > 0 && (
+            <ul className="sites">
+              {pageSites.map((pattern) => (
+                <li key={pattern} className="sites__item">
+                  <div className="sites__main">
+                    <span className="sites__origin" title={displayOrigin(pattern)}>
+                      {displayOrigin(pattern)}
+                    </span>
+                    <span
+                      className={`sites__badge${isLocalOrigin(pattern) ? ' sites__badge--local' : ''}`}
+                    >
+                      {isLocalOrigin(pattern)
+                        ? t('settings.sitesLocal')
+                        : t('settings.sitesRemote')}
+                    </span>
+                  </div>
+                  <button
+                    className="sites__del"
+                    onClick={() => revokeSite(pattern)}
+                    title={t('settings.revoke')}
+                    aria-label={t('settings.revoke')}
+                  >
+                    <TrashIcon size={16} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          {sitesPages > 1 && (
+            <div className="pager">
+              <button
+                className="pager__btn"
+                onClick={() => setSitesPage(page - 1)}
+                disabled={page === 0}
+                aria-label={t('settings.pagePrev')}
+                title={t('settings.pagePrev')}
+              >
+                ‹
+              </button>
+              <span className="pager__info">
+                {t('settings.pageInfo', (page + 1) as never, sitesPages as never)}
+              </span>
+              <button
+                className="pager__btn"
+                onClick={() => setSitesPage(page + 1)}
+                disabled={page >= sitesPages - 1}
+                aria-label={t('settings.pageNext')}
+                title={t('settings.pageNext')}
+              >
+                ›
+              </button>
+            </div>
+          )}
+        </section>
+      )}
+
       {tab === 'theme' && (
         <section className="field">
           <label className="field__label">{t('settings.theme')}</label>
@@ -303,8 +401,6 @@ export function SettingsView({
           />
         </section>
       )}
-
-      {tab === 'license' && <LicenseSection />}
     </div>
   )
 }

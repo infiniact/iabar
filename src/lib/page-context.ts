@@ -5,6 +5,12 @@
 // per-origin prompt inside the user gesture) and then inject a one-shot
 // extractor with `chrome.scripting.executeScript`. Nothing runs on a page
 // until the user references it and grants access.
+//
+// The per-origin grant/check lives in `origin-permission.ts` (transport-
+// agnostic, shared with other consumers like MCP endpoints); this module adds
+// the page-specific injection on top.
+
+import { grantOrigin, hasOrigin } from './origin-permission'
 
 /** A snapshot of a page the user referenced. */
 export interface PageContext {
@@ -77,9 +83,8 @@ export async function activeReferenceableTab(): Promise<RefTab | null> {
  */
 export async function capturePageContextIfGranted(tab: RefTab): Promise<PageContext | null> {
   if (isRestricted(tab.url)) return null
-  const origin = `${new URL(tab.url).origin}/*`
   try {
-    if (!(await chrome.permissions.contains({ origins: [origin] }))) return null
+    if (!(await hasOrigin(tab.url))) return null
     const [result] = await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       func: extractPageContext,
@@ -101,8 +106,7 @@ export async function capturePageContext(tab: RefTab): Promise<PageContext> {
   if (isRestricted(tab.url)) {
     throw new PageContextError('This page type cannot be read (browser-restricted).')
   }
-  const origin = `${new URL(tab.url).origin}/*`
-  const granted = await chrome.permissions.request({ origins: [origin] })
+  const granted = await grantOrigin(tab.url)
   if (!granted) {
     throw new PageContextError('Access to this site was not granted.')
   }

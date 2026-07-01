@@ -172,6 +172,13 @@ export interface AgentResult {
 export function agentRun(
   req: AgentRequest,
   onEvent: (ev: AgentEvent) => void,
+  /** Host tool dispatcher `(name, argsJson) -> Promise<result string>`. Backs
+   *  the browser tools (read_page, …). Omit to run with the built-in tools only. */
+  onTool?: (name: string, argsJson: string) => Promise<string>,
 ): Promise<AgentResult> {
-  return agent_run(req, (ev: unknown) => onEvent(ev as AgentEvent)) as Promise<AgentResult>
+  return agent_run(
+    req,
+    (ev: unknown) => onEvent(ev as AgentEvent),
+    onTool ? (name: string, argsJson: string) => onTool(name, argsJson) : null,
+  ) as Promise<AgentResult>
 }

@@ -267,6 +267,7 @@ export function ChatView({
               break
           }
         },
+        toolDispatch,
       )
       // Every run yields a trusted server timestamp from its last call.
       recordServerDate(result.server_date)
@@ -619,6 +620,34 @@ export function ChatView({
       )}
     </div>
   )
+}
+
+/** Host handler for the wasm browser tools (the Rust→JS seam). Given a tool
+ *  name + its JSON args, run the chrome-backed work and return a string the
+ *  model reads. Errors are returned as text (not thrown) so the loop continues. */
+async function toolDispatch(name: string, argsJson: string): Promise<string> {
+  if (name === 'read_page') {
+    let url: string | undefined
+    try {
+      url = (JSON.parse(argsJson || '{}') as { url?: string }).url
+    } catch {
+      // ignore malformed args → treat as the current tab
+    }
+    let tab: RefTab | null
+    if (url) {
+      const tabs = await listReferenceableTabs()
+      tab = tabs.find((tb) => tb.url === url) ?? tabs.find((tb) => tb.url.startsWith(url!)) ?? null
+    } else {
+      tab = await activeReferenceableTab()
+    }
+    if (!tab) return url ? `read_page: no open tab matches ${url}.` : 'read_page: no readable active tab.'
+    const ctx = await capturePageContextIfGranted(tab)
+    if (!ctx) {
+      return `read_page: "${tab.url}" is not accessible yet. Ask the user to @-reference it once to grant access.`
+    }
+    return `# ${ctx.title}\n<${ctx.url}>\n\n${ctx.text}`
+  }
+  return `Unknown tool: ${name}`
 }
 
 /** Fold a turn's @ page contexts into its text the way the model should see it. */

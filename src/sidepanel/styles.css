@@ -8,7 +8,7 @@
   --border-strong: #d6d9e0;
   --text: #14171c;
   --text-dim: #6a7382;
-  --accent: #2f6df6;
+  --accent: #2b5ce6;
   --accent-fg: #ffffff;
   --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
   --accent-ring: color-mix(in srgb, var(--accent) 22%, transparent);
@@ -37,7 +37,7 @@
   --border-strong: #333a47;
   --text: #e7e9ee;
   --text-dim: #98a1b1;
-  --accent: #6ea8fe;
+  --accent: #5e88f5;
   --accent-fg: #0b0d12;
   --ok: #4ade80;
   --err: #f87171;

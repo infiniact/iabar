@@ -1,15 +1,15 @@
 <svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
   <!-- IABar mark: the chat bubble IS the icon (no background badge). A browser
-       window — Apple-blue title bar with red/yellow/green traffic-light dots —
-       over a white body holding a Apple-blue AI spark, with a chat tail. A
-       Apple-blue outline (same as the title bar) defines the white body on light
+       window — royal blue title bar with red/yellow/green traffic-light dots —
+       over a white body holding a royal blue AI spark, with a chat tail. A
+       royal blue outline (same as the title bar) defines the white body on light
        backgrounds and blends into the header at the top. -->
   <defs>
     <clipPath id="bub">
       <path d="M30 8 H98 A22 22 0 0 1 120 30 V82 A22 22 0 0 1 98 104 H60 L40 123 L52 104 H30 A22 22 0 0 1 8 82 V30 A22 22 0 0 1 30 8 Z"/>
     </clipPath>
     <linearGradient id="cb" x1="64" y1="8" x2="64" y2="40" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#5BB0FF"/><stop offset="1" stop-color="#0A6CE6"/>
+      <stop offset="0" stop-color="#3E67EE"/><stop offset="1" stop-color="#2148C8"/>
     </linearGradient>
   </defs>
 
@@ -18,11 +18,11 @@
     <rect x="0" y="0" width="128" height="40" fill="url(#cb)"/>
   </g>
 
-  <path d="M30 8 H98 A22 22 0 0 1 120 30 V82 A22 22 0 0 1 98 104 H60 L40 123 L52 104 H30 A22 22 0 0 1 8 82 V30 A22 22 0 0 1 30 8 Z" fill="none" stroke="#0A84FF" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M30 8 H98 A22 22 0 0 1 120 30 V82 A22 22 0 0 1 98 104 H60 L40 123 L52 104 H30 A22 22 0 0 1 8 82 V30 A22 22 0 0 1 30 8 Z" fill="none" stroke="#2B5CE6" stroke-width="4" stroke-linejoin="round"/>
 
   <circle cx="28" cy="24" r="5.5" fill="#FF5F57"/>
   <circle cx="46" cy="24" r="5.5" fill="#FEBC2E"/>
   <circle cx="64" cy="24" r="5.5" fill="#28C840"/>
 
-  <path d="M64 48 C65.9 64.8 70.2 69.6 88 72 C70.2 74.4 65.9 79.2 64 96 C62.1 79.2 57.8 74.4 40 72 C57.8 69.6 62.1 64.8 64 48 Z" fill="#0A84FF"/>
+  <path d="M64 48 C65.9 64.8 70.2 69.6 88 72 C70.2 74.4 65.9 79.2 64 96 C62.1 79.2 57.8 74.4 40 72 C57.8 69.6 62.1 64.8 64 48 Z" fill="#2B5CE6"/>
 </svg>

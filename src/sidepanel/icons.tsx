@@ -160,8 +160,8 @@ export const EyeOffIcon = ({ size }: P) => (
 )
 
 // The IABar mark: the chat bubble IS the icon (no background badge). A browser
-// window — Apple-blue title bar with red/yellow/green traffic-light dots — over a
-// white body holding a Apple-blue AI spark, with a chat tail. Matches the
+// window — royal blue title bar with red/yellow/green traffic-light dots — over a
+// white body holding a royal blue AI spark, with a chat tail. Matches the
 // extension icon (assets/icon.svg).
 export const Logo = ({ size = 30 }: P) => (
   <svg width={size} height={size} viewBox="0 0 128 128" fill="none">
@@ -170,8 +170,8 @@ export const Logo = ({ size = 30 }: P) => (
         <path d="M30 8 H98 A22 22 0 0 1 120 30 V82 A22 22 0 0 1 98 104 H60 L40 123 L52 104 H30 A22 22 0 0 1 8 82 V30 A22 22 0 0 1 30 8 Z" />
       </clipPath>
       <linearGradient id="iabar-logo-cb" x1="64" y1="8" x2="64" y2="40" gradientUnits="userSpaceOnUse">
-        <stop offset="0" stopColor="#5BB0FF" />
-        <stop offset="1" stopColor="#0A6CE6" />
+        <stop offset="0" stopColor="#3E67EE" />
+        <stop offset="1" stopColor="#2148C8" />
       </linearGradient>
     </defs>
     <g clipPath="url(#iabar-logo-bub)">
@@ -181,7 +181,7 @@ export const Logo = ({ size = 30 }: P) => (
     <path
       d="M30 8 H98 A22 22 0 0 1 120 30 V82 A22 22 0 0 1 98 104 H60 L40 123 L52 104 H30 A22 22 0 0 1 8 82 V30 A22 22 0 0 1 30 8 Z"
       fill="none"
-      stroke="#0A84FF"
+      stroke="#2B5CE6"
       strokeWidth={4}
       strokeLinejoin="round"
     />
@@ -190,7 +190,7 @@ export const Logo = ({ size = 30 }: P) => (
     <circle cx="64" cy="24" r="5.5" fill="#28C840" />
     <path
       d="M64 48 C65.9 64.8 70.2 69.6 88 72 C70.2 74.4 65.9 79.2 64 96 C62.1 79.2 57.8 74.4 40 72 C57.8 69.6 62.1 64.8 64 48 Z"
-      fill="#0A84FF"
+      fill="#2B5CE6"
     />
   </svg>
 )

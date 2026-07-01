@@ -15,6 +15,13 @@ export type ProviderId =
   | 'minimax'
   | 'doubao'
   | 'gemini'
+  // Subscription / coding / plan tiers (ref iaterm) — flat monthly, not per-token.
+  | 'zai-coding'
+  | 'qwen-coding'
+  | 'kimi-coding'
+  | 'minimax-coding'
+  | 'doubao-coding'
+  | 'doubao-plan'
 export type ThemeMode = 'system' | 'light' | 'dark'
 export type Language = 'zh' | 'en'
 
@@ -25,6 +32,10 @@ export type AuthStyle = 'bearer' | 'anthropic'
 /** A provider the wasm engine can talk to. All but Anthropic are OpenAI
  *  Chat-Completions compatible and share one generic provider in wasm; the
  *  only thing that varies is `base`. */
+/** How the user pays: a per-token `api` key, or a flat `subscription`
+ *  (coding/plan/token tiers, à la iaterm). Absent → `api`. */
+export type ProviderKind = 'subscription' | 'api'
+
 export interface ProviderMeta {
   id: ProviderId
   label: string
@@ -37,6 +48,13 @@ export interface ProviderMeta {
   /** Where to obtain an API key (the "获取" guided link). */
   keyUrl: string
   enabled: boolean
+  /** Subscription tier vs plain API. Defaults to 'api' when omitted. */
+  kind?: ProviderKind
+}
+
+/** A provider's billing category (subscription tiers group above plain API). */
+export function providerKind(p: ProviderMeta): ProviderKind {
+  return p.kind ?? 'api'
 }
 
 export const PROVIDERS: ProviderMeta[] = [
@@ -129,6 +147,68 @@ export const PROVIDERS: ProviderMeta[] = [
     defaultModel: 'gemini-2.0-flash',
     keyUrl: 'https://aistudio.google.com/app/apikey',
     enabled: true,
+  },
+
+  // ---- Subscription / coding / plan tiers (flat monthly, ref iaterm) ----
+  {
+    id: 'zai-coding',
+    label: 'Z.AI Coding Plan',
+    base: 'https://api.z.ai/api/coding/paas/v4',
+    auth: 'bearer',
+    defaultModel: 'glm-4.6',
+    keyUrl: 'https://z.ai/manage-apikey/apikey-list',
+    enabled: true,
+    kind: 'subscription',
+  },
+  {
+    id: 'qwen-coding',
+    label: '通义千问 Coding',
+    base: 'https://coding.dashscope.aliyuncs.com/v1',
+    auth: 'bearer',
+    defaultModel: 'qwen3-coder-plus',
+    keyUrl: 'https://bailian.console.aliyun.com/',
+    enabled: true,
+    kind: 'subscription',
+  },
+  {
+    id: 'kimi-coding',
+    label: 'Kimi Code (订阅)',
+    base: 'https://api.kimi.com/coding/v1',
+    auth: 'bearer',
+    defaultModel: 'kimi-k2',
+    keyUrl: 'https://platform.moonshot.cn/console/api-keys',
+    enabled: true,
+    kind: 'subscription',
+  },
+  {
+    id: 'minimax-coding',
+    label: 'MiniMax Coding',
+    base: 'https://api.minimaxi.com/v1',
+    auth: 'bearer',
+    defaultModel: 'MiniMax-Text-01',
+    keyUrl: 'https://platform.minimaxi.com/user-center/basic-information/interface-key',
+    enabled: true,
+    kind: 'subscription',
+  },
+  {
+    id: 'doubao-coding',
+    label: '豆包 Coding',
+    base: 'https://ark.cn-beijing.volces.com/api/coding/v3',
+    auth: 'bearer',
+    defaultModel: 'doubao-pro-32k',
+    keyUrl: 'https://console.volcengine.com/ark',
+    enabled: true,
+    kind: 'subscription',
+  },
+  {
+    id: 'doubao-plan',
+    label: '豆包 Agent Plan',
+    base: 'https://ark.cn-beijing.volces.com/api/plan/v3',
+    auth: 'bearer',
+    defaultModel: 'doubao-pro-32k',
+    keyUrl: 'https://console.volcengine.com/ark',
+    enabled: true,
+    kind: 'subscription',
   },
 ]
 

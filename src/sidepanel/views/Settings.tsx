@@ -4,6 +4,7 @@ import { fetchModels, modelLabel } from '../../lib/models'
 import {
   baseUrlFor,
   PROVIDERS,
+  providerKind,
   type Language,
   type ProviderId,
   type Settings,
@@ -151,13 +152,25 @@ export function SettingsView({
           <label className="field__label">{t('settings.provider')}</label>
           <FilterSelect
             value={provider}
+            search
             onChange={(v) => pickProvider(v as ProviderId)}
-            options={PROVIDERS.map((p) => ({
-              value: p.id,
-              label: p.label,
-              disabled: !p.enabled,
-              badge: p.enabled ? undefined : 'soon',
-            }))}
+            options={[...PROVIDERS]
+              // Subscription tiers (coding/plan) group above plain API.
+              .sort(
+                (a, b) =>
+                  (providerKind(a) === 'subscription' ? 0 : 1) -
+                  (providerKind(b) === 'subscription' ? 0 : 1),
+              )
+              .map((p) => ({
+                value: p.id,
+                label: p.label,
+                disabled: !p.enabled,
+                badge: p.enabled ? undefined : 'soon',
+                group:
+                  providerKind(p) === 'subscription'
+                    ? t('settings.groupSubscription')
+                    : t('settings.groupApi'),
+              }))}
           />
         </section>
 

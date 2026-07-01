@@ -290,32 +290,72 @@ export function ChatView({
     })
   }
 
-  const quickActions = [
-    { icon: <AtIcon size={18} />, label: t('chat.quote'), run: () => void openPicker() },
-    { icon: <ReadIcon size={18} />, label: t('chat.summarize'), run: () => prefill(t('chat.prefillSummarize')) },
-    { icon: <TranslateIcon size={18} />, label: t('chat.translate'), run: () => prefill(t('chat.prefillTranslate')) },
-    { icon: <PencilIcon size={18} />, label: t('chat.write'), run: () => prefill(t('chat.prefillWrite')) },
+  // Capability cards for the empty-state hub (2×2 grid, à la Sider/Monica).
+  const capabilities = [
+    {
+      icon: <ReadIcon size={18} />,
+      label: t('chat.summarize'),
+      desc: t('hub.capSummarizeDesc'),
+      run: () => prefill(t('chat.prefillSummarize')),
+    },
+    {
+      icon: <TranslateIcon size={18} />,
+      label: t('chat.translate'),
+      desc: t('hub.capTranslateDesc'),
+      run: () => prefill(t('chat.prefillTranslate')),
+    },
+    {
+      icon: <PencilIcon size={18} />,
+      label: t('chat.write'),
+      desc: t('hub.capWriteDesc'),
+      run: () => prefill(t('chat.prefillWrite')),
+    },
+    {
+      icon: <SkillIcon size={18} />,
+      label: t('chat.research'),
+      desc: t('hub.capResearchDesc'),
+      run: () => prefill(t('chat.prefillResearch')),
+    },
   ]
+
+  // Providers with a key or a fetched model list — shown as compare chips.
+  const configuredProviders = PROVIDERS.filter((p) => {
+    const c = settings.byProvider[p.id]
+    return c && (c.apiKey || c.models?.length)
+  })
 
   return (
     <div className="view view--chat">
       <div className="chat__log" ref={logRef}>
         {messages.length === 0 ? (
-          <div className="welcome">
-            <div className="welcome__brand">
-              <HeroMark size={56} />
+          <div className="hub">
+            <div className="hub__head">
+              <HeroMark size={44} />
+              <h3 className="hub__title">{t('hub.title')}</h3>
+              <p className="hub__sub">{t('hub.sub')}</p>
             </div>
-            <h3 className="welcome__title">{t('chat.welcomeTitle')}</h3>
-            <p className="welcome__sub">
-              {t('chat.welcomeSubPre')}
-              <b>@</b>
-              {t('chat.welcomeSubPost')}
-            </p>
-            <div className="quick">
-              {quickActions.map((q) => (
-                <button key={q.label} className="quick__card" onClick={q.run}>
-                  <span className="quick__icon">{q.icon}</span>
-                  <span className="quick__label">{q.label}</span>
+            {configuredProviders.length > 0 && (
+              <div className="hub__models">
+                {configuredProviders.map((p) => (
+                  <button
+                    key={p.id}
+                    className={`mchip${settings.provider === p.id ? ' mchip--on' : ''}`}
+                    title={p.label}
+                    onClick={() => onPickModel(p.id, settings.byProvider[p.id].model)}
+                  >
+                    {shortLabel(p.label)}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="hub__grid">
+              {capabilities.map((c) => (
+                <button key={c.label} className="cap" onClick={c.run}>
+                  <span className="cap__icon">{c.icon}</span>
+                  <span className="cap__text">
+                    <span className="cap__label">{c.label}</span>
+                    <span className="cap__desc">{c.desc}</span>
+                  </span>
                 </button>
               ))}
             </div>

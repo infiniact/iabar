@@ -188,7 +188,7 @@ export function App() {
           <button
             className={`rail__btn${view === 'history' ? ' rail__btn--on' : ''}`}
             title={t('rail.history')}
-            onClick={() => setView('history')}
+            onClick={() => setView(view === 'history' ? 'chat' : 'history')}
           >
             <HistoryIcon />
           </button>

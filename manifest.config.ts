@@ -70,9 +70,12 @@ export default defineManifest({
     'https://api.moonshot.cn/*',
     'https://api.z.ai/*',
     'https://dashscope.aliyuncs.com/*',
+    'https://coding.dashscope.aliyuncs.com/*',
     'https://api.minimaxi.com/*',
     'https://ark.cn-beijing.volces.com/*',
     'https://generativelanguage.googleapis.com/*',
+    // Subscription/coding tiers on their own hosts (see PROVIDERS).
+    'https://api.kimi.com/*',
     // iakms license server (see src/lib/license/config.ts — keep in sync).
     'http://127.0.0.1:8080/*',
   ],

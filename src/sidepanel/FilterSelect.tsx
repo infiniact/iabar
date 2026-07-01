@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react'
 import { ChevronDownIcon, CheckIcon } from './icons'
 import { useClickOutside } from './useClickOutside'
 import { useT } from '../lib/i18n'
@@ -9,6 +9,9 @@ export interface SelectOption {
   disabled?: boolean
   /** Small trailing tag, e.g. "soon". */
   badge?: string
+  /** Section header shown above the first option of each group. Options must be
+   *  pre-sorted by group for headers to render once per section. */
+  group?: string
 }
 
 /**
@@ -105,29 +108,34 @@ export function FilterSelect({
           {search && !up && searchRow}
           <ul className="fselect__list">
             {filtered.length === 0 && <li className="fselect__empty">{t('fselect.empty')}</li>}
-            {filtered.map((o) => (
-              <li key={o.value}>
-                <button
-                  type="button"
-                  role="option"
-                  aria-selected={o.value === value}
-                  className={`fselect__opt${o.value === value ? ' fselect__opt--on' : ''}`}
-                  disabled={o.disabled}
-                  onClick={() => {
-                    if (o.disabled) return
-                    onChange(o.value)
-                    setOpen(false)
-                  }}
-                >
-                  <span className="fselect__opt-label">{o.label}</span>
-                  {o.badge && <span className="seg__soon">{o.badge}</span>}
-                  {o.value === value && (
-                    <span className="fselect__check">
-                      <CheckIcon size={15} />
-                    </span>
-                  )}
-                </button>
-              </li>
+            {filtered.map((o, i) => (
+              <Fragment key={o.value}>
+                {o.group && o.group !== filtered[i - 1]?.group && (
+                  <li className="fselect__group">{o.group}</li>
+                )}
+                <li>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={o.value === value}
+                    className={`fselect__opt${o.value === value ? ' fselect__opt--on' : ''}`}
+                    disabled={o.disabled}
+                    onClick={() => {
+                      if (o.disabled) return
+                      onChange(o.value)
+                      setOpen(false)
+                    }}
+                  >
+                    <span className="fselect__opt-label">{o.label}</span>
+                    {o.badge && <span className="seg__soon">{o.badge}</span>}
+                    {o.value === value && (
+                      <span className="fselect__check">
+                        <CheckIcon size={15} />
+                      </span>
+                    )}
+                  </button>
+                </li>
+              </Fragment>
             ))}
           </ul>
           {search && up && searchRow}

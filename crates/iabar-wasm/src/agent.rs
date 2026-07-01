@@ -175,17 +175,27 @@ fn event_to_js(ev: &AgentEvent) -> Option<JsValue> {
 /// {@link AgentResult}. The event pump runs cooperatively on the same thread, so
 /// deltas reach JS as the loop yields on each provider fetch.
 #[wasm_bindgen]
-pub async fn agent_run(req: JsValue, on_event: js_sys::Function) -> Result<JsValue, JsValue> {
+pub async fn agent_run(
+    req: JsValue,
+    on_event: js_sys::Function,
+    on_tool: JsValue,
+) -> Result<JsValue, JsValue> {
+    use wasm_bindgen::JsCast;
+
     let req: AgentRequest = serde_wasm_bindgen::from_value(req)
         .map_err(|e| JsValue::from_str(&format!("bad request: {e}")))?;
 
     let provider = build_provider(&req);
     let model = req.model.clone().unwrap_or_default();
 
-    // Browser-safe tool set: the portable in-process `ThinkTool`. Native tools
-    // (shell/fs/edit) are `cfg`'d out of `iacoder-tools` on wasm; host-backed
-    // browser tools (page read, etc.) attach via seams in a later wave.
-    let tools: Vec<BoxedTool> = vec![Arc::new(iacoder_tools::ThinkTool)];
+    // Browser-safe tools: the portable in-process `ThinkTool`, plus host-injected
+    // browser tools (read_page, …) when the host passes a dispatch callback
+    // `(name, argsJson) -> Promise<string>`. The native `iacoder-tools`
+    // (shell/fs/edit) stay `cfg`'d out on wasm.
+    let mut tools: Vec<BoxedTool> = vec![Arc::new(iacoder_tools::ThinkTool)];
+    if let Some(dispatch) = on_tool.dyn_ref::<js_sys::Function>() {
+        tools.push(Arc::new(crate::host_tool::ReadPageTool::new(dispatch.clone())));
+    }
     let permissions = Arc::new(AllowAll);
     let max_turns = req.max_turns.unwrap_or(8);
     let window = req.context_window.unwrap_or(128_000);

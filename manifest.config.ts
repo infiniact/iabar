@@ -77,7 +77,7 @@ export default defineManifest({
     // Subscription/coding tiers on their own hosts (see PROVIDERS).
     'https://api.kimi.com/*',
     // iakms license server (see src/lib/license/config.ts — keep in sync).
-    'http://127.0.0.1:8080/*',
+    'https://iakms.infiniact.com/*',
   ],
   // Page access is requested at runtime, per origin, when the user @-references
   // a tab (ADR 0009). Nothing is granted up front.

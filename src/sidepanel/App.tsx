@@ -22,6 +22,7 @@ import { HistoryView } from './views/History'
 import { SettingsView } from './views/Settings'
 import { CloseIcon, HistoryIcon, PlusIcon, SettingsIcon } from './icons'
 import { RailAccount } from './RailAccount'
+import { AccountModal } from './views/AccountModal'
 import { useClickOutside } from './useClickOutside'
 
 type View = 'chat' | 'history'
@@ -34,14 +35,14 @@ export function App() {
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [conv, setConv] = useState<Conversation>(() => newConversation())
   const [view, setView] = useState<View>('chat')
-  // Settings is an overlay popup over the chat (closes on outside click / Esc).
+  // Settings + Account are overlay popups (close on outside click / Esc).
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const [settingsTab, setSettingsTab] = useState<'provider' | 'language' | 'theme' | 'license'>(
-    'provider',
-  )
+  const [settingsTab, setSettingsTab] = useState<'provider' | 'language' | 'theme'>('provider')
+  const [accountOpen, setAccountOpen] = useState(false)
   const settingsRef = useRef<HTMLDivElement>(null)
+  const accountRef = useRef<HTMLDivElement>(null)
 
-  function openSettings(tab: 'provider' | 'language' | 'theme' | 'license' = 'provider') {
+  function openSettings(tab: 'provider' | 'language' | 'theme' = 'provider') {
     setSettingsTab(tab)
     setSettingsOpen(true)
   }
@@ -49,14 +50,18 @@ export function App() {
   useTheme(settings.theme)
 
   useClickOutside(settingsRef, () => setSettingsOpen(false), settingsOpen)
+  useClickOutside(accountRef, () => setAccountOpen(false), accountOpen)
   useEffect(() => {
-    if (!settingsOpen) return
+    if (!settingsOpen && !accountOpen) return
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setSettingsOpen(false)
+      if (e.key === 'Escape') {
+        setSettingsOpen(false)
+        setAccountOpen(false)
+      }
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-  }, [settingsOpen])
+  }, [settingsOpen, accountOpen])
 
   useEffect(() => {
     let cancelled = false
@@ -190,6 +195,22 @@ export function App() {
         </div>
       )}
 
+      {boot === 'ready' && accountOpen && (
+        <div className="modal">
+          <div className="modal__panel" ref={accountRef}>
+            <button
+              className="modal__close"
+              title={t('common.close')}
+              aria-label={t('common.close')}
+              onClick={() => setAccountOpen(false)}
+            >
+              <CloseIcon size={16} />
+            </button>
+            <AccountModal />
+          </div>
+        </div>
+      )}
+
       <nav className="rail">
         <div className="rail__group">
           <button className="rail__btn" title={t('rail.new')} onClick={newChat}>
@@ -211,7 +232,7 @@ export function App() {
           >
             <SettingsIcon />
           </button>
-          {boot === 'ready' && <RailAccount onOpen={() => openSettings('license')} />}
+          {boot === 'ready' && <RailAccount onOpen={() => setAccountOpen(true)} />}
         </div>
       </nav>
     </div>

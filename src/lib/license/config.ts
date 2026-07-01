@@ -12,9 +12,13 @@
 /** Application id registered in iakms. */
 export const APP_ID = 'iabar'
 
-// Test/dev iakms server. TODO(deploy): swap for the production origin and keep
-// in sync with manifest host_permissions.
-export const KMS_BASE_URL = 'http://127.0.0.1:8080'
+// Production iakms server. Keep in sync with manifest host_permissions.
+export const KMS_BASE_URL = 'https://iakms.infiniact.com'
+
+// Stripe checkout entry on iakms. Opened in a NEW TAB with the signed-in email
+// prefilled; iakms creates the Stripe Checkout Session and redirects to Stripe.
+// (A plain tab navigation — not an extension fetch — so it needs no permission.)
+export const CHECKOUT_URL = `${KMS_BASE_URL}/v1/checkout`
 
 export interface EmbeddedPubKey {
   key_version: number
@@ -28,7 +32,7 @@ export const EMBEDDED_PUBKEYS: EmbeddedPubKey[] = [
   {
     key_version: 1,
     public_key_b64:
-      'BChNc5bMoO93nOfHFOwzi1W44aodI8jdrSnFZZJRn3rgVEqbw0F0oNYfTdhI4ZGI0xAzUEIzkWwQwiCiSju-z98',
+      'BGeqW3xm-dxBqvoccUm76rUTFu02IVv-e7h9aoipjsKWrLPoAV-xqQwYZJhfKmuqUmTZeH43AfUepENHWsnRoaM',
   },
 ]
 

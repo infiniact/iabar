@@ -1368,6 +1368,102 @@ select.input {
   background: color-mix(in srgb, var(--err) 10%, transparent);
 }
 
+/* ---- Site permissions (ADR 0009 granted origins) ---- */
+.sites {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sites__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel-2);
+  padding: 8px 8px 8px 12px;
+}
+.sites__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sites__origin {
+  font-size: 12.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sites__badge {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 999px;
+  color: var(--text-dim);
+  background: color-mix(in srgb, var(--text-dim) 14%, transparent);
+}
+.sites__badge--local {
+  color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 15%, transparent);
+}
+.sites__del {
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  padding: 4px 6px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+.sites__del:hover {
+  color: var(--err);
+  background: color-mix(in srgb, var(--err) 10%, transparent);
+}
+.sites__empty {
+  padding: 16px 0;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+.pager__btn {
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--text);
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  transition: border-color 0.15s, background 0.15s, opacity 0.15s;
+}
+.pager__btn:hover:not(:disabled) {
+  border-color: var(--border-strong);
+}
+.pager__btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.pager__info {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
 /* ---- License (iakms) status ---- */
 .license__badge {
   font-size: 11px;
@@ -1439,6 +1535,15 @@ select.input {
   display: flex;
   gap: 8px;
   margin-top: 10px;
+}
+.license__buy {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.license__buy .btn {
+  width: 100%;
+  justify-content: center;
 }
 .btn--on {
   border-color: var(--accent);
@@ -1545,4 +1650,154 @@ select.input {
   background: color-mix(in srgb, var(--accent) 14%, transparent);
   color: var(--accent);
   border-radius: 999px;
+}
+
+/* ---- Account modal: login page + License/Usage ---- */
+.account {
+  padding: 16px 16px 210px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.account--loading {
+  align-items: center;
+  color: var(--text-dim);
+}
+.account__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* Reserve room on the right for the modal's absolute close (X) button so the
+     logout icon sits to its left instead of overlapping it. */
+  padding-right: 36px;
+}
+.account__id {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.account__logout {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.account__logout:hover {
+  background: var(--panel);
+  color: var(--err);
+}
+
+/* Login page */
+.login {
+  padding: 24px 18px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.login__head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  color: var(--accent);
+}
+.login__title {
+  margin: 6px 0 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+}
+.login__sub {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.login__google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 10px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.login__google:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.login__or {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-dim);
+  font-size: 11px;
+}
+.login__or::before,
+.login__or::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+.login__form {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.login__keep {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.login__keep input {
+  accent-color: var(--accent);
+}
+
+/* Usage tab */
+.usage {
+  display: flex;
+  flex-direction: column;
+}
+.usage__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 2px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.usage__row:last-child {
+  border-bottom: none;
+}
+.usage__k {
+  color: var(--text-dim);
+}
+.usage__v {
+  font-weight: 600;
+}
+.usage__empty {
+  padding: 20px 0;
+  text-align: center;
 }

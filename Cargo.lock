@@ -914,6 +914,7 @@ dependencies = [
  "iacoder-tools",
  "js-sys",
  "reqwest",
+ "schemars",
  "serde",
  "serde-wasm-bindgen",
  "serde_json",

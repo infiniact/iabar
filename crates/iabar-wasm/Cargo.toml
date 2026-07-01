@@ -48,6 +48,10 @@ iacoder-tools.workspace = true
 iacoder-agent.workspace = true
 async-trait.workspace = true
 futures.workspace = true
+# Host-injected browser tools (read_page, …) build their input schema the same
+# way the engine's tools do; match the engine's schemars major so the
+# `ToolDefinition::input_schema` type unifies across the graph.
+schemars = { version = "1", features = ["derive"] }
 # The agent loop streams `AgentEvent` over a tokio unbounded channel and the
 # bridge drains it; `sync` is the only feature needed (current-thread, no rt).
 tokio = { version = "1", default-features = false, features = ["sync"] }

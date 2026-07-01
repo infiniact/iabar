@@ -95,6 +95,85 @@ export async function capturePageContextIfGranted(tab: RefTab): Promise<PageCont
   }
 }
 
+/** One page read during a drill-down. */
+export interface DrillPage {
+  url: string
+  title: string
+  text: string
+}
+
+/** Fetch a URL's HTML (only if its origin is granted) and pull plain text +
+ *  same-document links. Server HTML — no JS-rendered content. */
+async function fetchPageText(
+  url: string,
+): Promise<{ title: string; text: string; links: string[] } | null> {
+  const origin = `${new URL(url).origin}/*`
+  try {
+    if (!(await chrome.permissions.contains({ origins: [origin] }))) return null
+    const resp = await fetch(url)
+    if (!resp.ok) return null
+    const html = await resp.text()
+    const doc = new DOMParser().parseFromString(html, 'text/html')
+    doc.querySelectorAll('script,style,noscript,template,svg,iframe').forEach((el) => el.remove())
+    const title = doc.title || url
+    const text = (doc.body?.textContent ?? '').replace(/\s+/g, ' ').trim().slice(0, 8_000)
+    const links = Array.from(doc.querySelectorAll('a[href]'))
+      .map((a) => {
+        try {
+          return new URL(a.getAttribute('href') ?? '', url).href
+        } catch {
+          return null
+        }
+      })
+      .filter((h): h is string => Boolean(h))
+    return { title, text, links }
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Drill down from `start`: read it, then follow its same-origin links up to
+ * `depth` levels (breadth-first), reading each page, bounded by `maxPages`.
+ * Only the start origin (granted via `@`) is followed. Returns each visited
+ * page's text.
+ */
+export async function drillDown(
+  start: string,
+  depth: number,
+  maxPages: number,
+): Promise<DrillPage[]> {
+  const startOrigin = new URL(start).origin
+  const seen = new Set<string>()
+  const out: DrillPage[] = []
+  let frontier = [start]
+
+  for (let level = 0; level <= depth && out.length < maxPages; level++) {
+    const next: string[] = []
+    for (const raw of frontier) {
+      if (out.length >= maxPages) break
+      const u = raw.split('#')[0]
+      if (seen.has(u)) continue
+      seen.add(u)
+      const page = await fetchPageText(u)
+      if (!page) continue
+      out.push({ url: u, title: page.title, text: page.text })
+      if (level < depth) {
+        for (const l of page.links) {
+          const ln = l.split('#')[0]
+          try {
+            if (new URL(ln).origin === startOrigin && !seen.has(ln)) next.push(ln)
+          } catch {
+            // skip unparseable links
+          }
+        }
+      }
+    }
+    frontier = next
+  }
+  return out
+}
+
 export class PageContextError extends Error {}
 
 /**

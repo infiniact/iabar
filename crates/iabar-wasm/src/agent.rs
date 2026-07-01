@@ -60,6 +60,21 @@ struct AgentRequest {
     /// Compaction window in tokens; the pipeline compacts at ~60% of this.
     #[serde(default)]
     context_window: Option<u32>,
+    /// Host-injected browser tool definitions; each becomes a `HostTool` that
+    /// dispatches to the `on_tool` JS callback. Empty ⇒ built-in tools only.
+    #[serde(default)]
+    tools: Vec<HostToolDef>,
+}
+
+/// One browser tool the JS host exposes (name/description/JSON input schema).
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct HostToolDef {
+    name: String,
+    #[serde(default)]
+    description: String,
+    #[serde(default)]
+    input_schema: serde_json::Value,
 }
 
 /// Final projection returned to JS when the run settles. The streamed events
@@ -194,7 +209,14 @@ pub async fn agent_run(
     // (shell/fs/edit) stay `cfg`'d out on wasm.
     let mut tools: Vec<BoxedTool> = vec![Arc::new(iacoder_tools::ThinkTool)];
     if let Some(dispatch) = on_tool.dyn_ref::<js_sys::Function>() {
-        tools.push(Arc::new(crate::host_tool::ReadPageTool::new(dispatch.clone())));
+        for def in req.tools {
+            tools.push(Arc::new(crate::host_tool::HostTool::new(
+                def.name,
+                def.description,
+                def.input_schema,
+                dispatch.clone(),
+            )));
+        }
     }
     let permissions = Arc::new(AllowAll);
     let max_turns = req.max_turns.unwrap_or(8);

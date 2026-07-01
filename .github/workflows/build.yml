@@ -33,9 +33,10 @@ jobs:
       - name: Install wasm-pack
         uses: jetli/wasm-pack-action@v0.4.0
 
-      # 浏览器用 ESM：--target web。若要打 npm 包可改 --target bundler
+      # 浏览器用 ESM：--target web。若要打 npm 包可改 --target bundler。
+      # 根 Cargo.toml 是 workspace，wasm 包在 crates/iabar-wasm，需指定路径。
       - name: Build wasm
-        run: wasm-pack build --release --target web --out-dir pkg
+        run: wasm-pack build crates/iabar-wasm --release --target web --out-dir "$GITHUB_WORKSPACE/pkg" --out-name iabar_wasm
 
       - name: Upload wasm artifact
         uses: actions/upload-artifact@v4

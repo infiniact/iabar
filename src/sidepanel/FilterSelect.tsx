@@ -48,9 +48,12 @@ export function FilterSelect({
   const [query, setQuery] = useState('')
   const ref = useRef<HTMLDivElement>(null)
   const searchRef = useRef<HTMLInputElement>(null)
+  // Show the filter box when asked, or automatically once the list is long
+  // (>10 items) — global rule so every long dropdown stays scannable.
+  const showSearch = search || options.length > 10
   const current = options.find((o) => o.value === value)
   const filtered =
-    search && query.trim()
+    showSearch && query.trim()
       ? options.filter((o) => o.label.toLowerCase().includes(query.trim().toLowerCase()))
       : options
 
@@ -62,15 +65,15 @@ export function FilterSelect({
       setQuery('')
       return
     }
-    if (search) searchRef.current?.focus()
+    if (showSearch) searchRef.current?.focus()
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') setOpen(false)
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-  }, [open, search])
+  }, [open, showSearch])
 
-  const searchRow = search ? (
+  const searchRow = showSearch ? (
     <div className="fselect__search">
       <input
         ref={searchRef}
@@ -105,7 +108,7 @@ export function FilterSelect({
           className={`fselect__menu${menuAlign === 'right' ? ' fselect__menu--right' : ''}`}
           role="listbox"
         >
-          {search && !up && searchRow}
+          {showSearch && !up && searchRow}
           <ul className="fselect__list">
             {filtered.length === 0 && <li className="fselect__empty">{t('fselect.empty')}</li>}
             {filtered.map((o, i) => (
@@ -138,7 +141,7 @@ export function FilterSelect({
               </Fragment>
             ))}
           </ul>
-          {search && up && searchRow}
+          {showSearch && up && searchRow}
         </div>
       )}
     </div>

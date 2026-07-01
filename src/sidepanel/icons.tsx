@@ -87,6 +87,13 @@ export const ExpertIcon = ({ size }: P) => (
   </svg>
 )
 
+export const UserIcon = ({ size }: P) => (
+  <svg {...base(size)}>
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1" />
+  </svg>
+)
+
 export const SkillIcon = ({ size }: P) => (
   <svg {...base(size)}>
     <path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9L12 3Z" />
@@ -160,8 +167,8 @@ export const EyeOffIcon = ({ size }: P) => (
 )
 
 // The IABar mark: the chat bubble IS the icon (no background badge). A browser
-// window — Apple-blue title bar with red/yellow/green traffic-light dots — over a
-// white body holding a Apple-blue AI spark, with a chat tail. Matches the
+// window — royal blue title bar with red/yellow/green traffic-light dots — over a
+// white body holding a royal blue AI spark, with a chat tail. Matches the
 // extension icon (assets/icon.svg).
 export const Logo = ({ size = 30 }: P) => (
   <svg width={size} height={size} viewBox="0 0 128 128" fill="none">
@@ -170,8 +177,8 @@ export const Logo = ({ size = 30 }: P) => (
         <path d="M30 8 H98 A22 22 0 0 1 120 30 V82 A22 22 0 0 1 98 104 H60 L40 123 L52 104 H30 A22 22 0 0 1 8 82 V30 A22 22 0 0 1 30 8 Z" />
       </clipPath>
       <linearGradient id="iabar-logo-cb" x1="64" y1="8" x2="64" y2="40" gradientUnits="userSpaceOnUse">
-        <stop offset="0" stopColor="#5BB0FF" />
-        <stop offset="1" stopColor="#0A6CE6" />
+        <stop offset="0" stopColor="#3E67EE" />
+        <stop offset="1" stopColor="#2148C8" />
       </linearGradient>
     </defs>
     <g clipPath="url(#iabar-logo-bub)">
@@ -181,7 +188,7 @@ export const Logo = ({ size = 30 }: P) => (
     <path
       d="M30 8 H98 A22 22 0 0 1 120 30 V82 A22 22 0 0 1 98 104 H60 L40 123 L52 104 H30 A22 22 0 0 1 8 82 V30 A22 22 0 0 1 30 8 Z"
       fill="none"
-      stroke="#0A84FF"
+      stroke="#2B5CE6"
       strokeWidth={4}
       strokeLinejoin="round"
     />
@@ -189,9 +196,13 @@ export const Logo = ({ size = 30 }: P) => (
     <circle cx="46" cy="24" r="5.5" fill="#FEBC2E" />
     <circle cx="64" cy="24" r="5.5" fill="#28C840" />
     <path
-      d="M64 48 C66.2 66.9 71 72.3 91 75 C71 77.7 66.2 83.1 64 102 C61.8 83.1 57 77.7 37 75 C57 72.3 61.8 66.9 64 48 Z"
-      fill="#0A84FF"
+      d="M64 48 C65.9 64.8 70.2 69.6 88 72 C70.2 74.4 65.9 79.2 64 96 C62.1 79.2 57.8 74.4 40 72 C57.8 69.6 62.1 64.8 64 48 Z"
+      fill="#2B5CE6"
     />
+    <path d="M94 45 C94.7 51.3 96.3 53.1 103 54 C96.3 54.9 94.7 56.7 94 63 C93.3 56.7 91.7 54.9 85 54 C91.7 53.1 93.3 51.3 94 45 Z" fill="#2B5CE6" />
+    <path d="M105 63 C105.4 66.5 106.3 67.5 110 68 C106.3 68.5 105.4 69.5 105 73 C104.6 69.5 103.7 68.5 100 68 C103.7 67.5 104.6 66.5 105 63 Z" fill="#2B5CE6" />
+    <path d="M34 82 C34.6 87.6 36.1 89.2 42 90 C36.1 90.8 34.6 92.4 34 98 C33.4 92.4 31.9 90.8 26 90 C31.9 89.2 33.4 87.6 34 82 Z" fill="#2B5CE6" />
+    <path d="M24 71.5 C24.4 74.7 25.2 75.6 28.5 76 C25.2 76.5 24.4 77.4 24 80.5 C23.6 77.4 22.8 76.5 19.5 76 C22.8 75.6 23.6 74.7 24 71.5 Z" fill="#2B5CE6" />
   </svg>
 )
 
@@ -213,7 +224,7 @@ export const HeroMark = ({ size = 52 }: P) => (
     <circle cx="17" cy="12.5" r="1.5" fill="currentColor" />
     <circle cx="22" cy="12.5" r="1.5" fill="currentColor" />
     <path
-      d="M24 18.7 C24.6 23.5 25.8 24.8 30.8 25.5 C25.8 26.2 24.6 27.5 24 32.3 C23.4 27.5 22.2 26.2 17.2 25.5 C22.2 24.8 23.4 23.5 24 18.7 Z"
+      d="M24 19.3 C24.5 23.6 25.6 24.9 30.2 25.5 C25.6 26.1 24.5 27.4 24 31.7 C23.5 27.4 22.4 26.1 17.8 25.5 C22.4 24.9 23.5 23.6 24 19.3 Z"
       fill="currentColor"
     />
   </svg>

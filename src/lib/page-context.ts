@@ -69,6 +69,27 @@ export async function activeReferenceableTab(): Promise<RefTab | null> {
   return { id: tab.id, title: tab.title || tab.url, url: tab.url, favIconUrl: tab.favIconUrl }
 }
 
+/**
+ * Capture a tab's context **only if its origin is already granted** — no
+ * permission prompt, no user gesture needed. Returns null when the origin
+ * isn't granted (or on any failure). Used to auto-include the current tab as
+ * the default `@` slot without prompting on every tab switch (ADR 0009).
+ */
+export async function capturePageContextIfGranted(tab: RefTab): Promise<PageContext | null> {
+  if (isRestricted(tab.url)) return null
+  const origin = `${new URL(tab.url).origin}/*`
+  try {
+    if (!(await chrome.permissions.contains({ origins: [origin] }))) return null
+    const [result] = await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: extractPageContext,
+    })
+    return result?.result ?? null
+  } catch {
+    return null
+  }
+}
+
 export class PageContextError extends Error {}
 
 /**

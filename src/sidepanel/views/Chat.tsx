@@ -12,7 +12,9 @@ import {
   type StoredTurn,
 } from '../../lib/store'
 import {
+  activeReferenceableTab,
   capturePageContext,
+  capturePageContextIfGranted,
   listReferenceableTabs,
   PageContextError,
   type PageContext,
@@ -70,7 +72,13 @@ export function ChatView({
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Manually @-referenced pages — persist across turns (not cleared on send).
   const [attachments, setAttachments] = useState<PageContext[]>([])
+  // The active browser tab, auto-referenced as the default first @ slot; it
+  // tracks the current tab live and `dismissedUrl` lets the user drop it (until
+  // they switch to a different page).
+  const [currentTab, setCurrentTab] = useState<RefTab | null>(null)
+  const [dismissedUrl, setDismissedUrl] = useState<string | null>(null)
   // Live, ephemeral agent activity for the in-flight run (compaction, tool
   // calls) — surfaced from the loop's event stream, never persisted.
   const [activity, setActivity] = useState<string[]>([])
@@ -98,7 +106,32 @@ export function ChatView({
     return () => document.removeEventListener('keydown', onKey)
   }, [picker])
 
-  // Reset when switching conversations.
+  // Track the active browser tab so it can ride as the default first @ slot.
+  useEffect(() => {
+    let cancelled = false
+    const refresh = async () => {
+      const tab = await activeReferenceableTab()
+      if (!cancelled) setCurrentTab(tab)
+    }
+    void refresh()
+    const onActivated = () => void refresh()
+    const onUpdated = (_id: number, info: chrome.tabs.TabChangeInfo) => {
+      if (info.url || info.status === 'complete' || info.title) void refresh()
+    }
+    const onFocus = () => void refresh()
+    chrome.tabs?.onActivated.addListener(onActivated)
+    chrome.tabs?.onUpdated.addListener(onUpdated)
+    chrome.windows?.onFocusChanged.addListener(onFocus)
+    return () => {
+      cancelled = true
+      chrome.tabs?.onActivated.removeListener(onActivated)
+      chrome.tabs?.onUpdated.removeListener(onUpdated)
+      chrome.windows?.onFocusChanged.removeListener(onFocus)
+    }
+  }, [])
+
+  // Reset per-conversation state. Manual attachments persist across turns but
+  // reset when the conversation changes.
   useEffect(() => {
     setMessages(conversation.messages)
     setAttachments([])
@@ -106,6 +139,11 @@ export function ChatView({
     setHistIdx(null)
     setError(null)
   }, [conversation.id])
+
+  // The current tab shown as the default @ slot 0 — unless dismissed, or already
+  // in the manual attachments.
+  const showCurrentTab =
+    currentTab && currentTab.url !== dismissedUrl && !attachments.some((a) => a.url === currentTab.url)
 
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight })
@@ -164,13 +202,22 @@ export function ChatView({
     // gets a *reconstructed* history (page context folded into each user turn)
     // plus the new prompt — but we persist the original `base`, not that.
     const base = messages.filter((m) => !m.pending)
-    const atts = attachments
-    const userTurn: Msg = { role: 'user', content: text, attachments: atts.length ? atts : undefined }
-    setMessages([...base, userTurn, { role: 'assistant', content: '', pending: true }])
+    const manual = attachments
     setInput('')
     setActivity([])
     setHistIdx(null)
     setBusy(true)
+
+    // Prepend the current tab as the default first @ — captured fresh, but only
+    // if its origin is already granted (no prompt on send). Otherwise the chip
+    // still shows; its content joins once the user @-grants that site once.
+    let atts = manual
+    if (showCurrentTab && currentTab) {
+      const ctx = await capturePageContextIfGranted(currentTab)
+      if (ctx) atts = [ctx, ...manual.filter((a) => a.url !== ctx.url)]
+    }
+    const userTurn: Msg = { role: 'user', content: text, attachments: atts.length ? atts : undefined }
+    setMessages([...base, userTurn, { role: 'assistant', content: '', pending: true }])
 
     // Page context (@) must ride in the user prompt — the engine ignores
     // `system` once there's prior history (it's the cache anchor, carried by the
@@ -225,7 +272,7 @@ export function ChatView({
       recordServerDate(result.server_date)
       const next: Msg[] = [...base, userTurn, { role: 'assistant', content: result.text || acc }]
       setMessages(next)
-      setAttachments([])
+      // Manual @ attachments persist across turns (not cleared here).
       persist(next)
     } catch (e) {
       setMessages([...base, userTurn])
@@ -290,32 +337,72 @@ export function ChatView({
     })
   }
 
-  const quickActions = [
-    { icon: <AtIcon size={18} />, label: t('chat.quote'), run: () => void openPicker() },
-    { icon: <ReadIcon size={18} />, label: t('chat.summarize'), run: () => prefill(t('chat.prefillSummarize')) },
-    { icon: <TranslateIcon size={18} />, label: t('chat.translate'), run: () => prefill(t('chat.prefillTranslate')) },
-    { icon: <PencilIcon size={18} />, label: t('chat.write'), run: () => prefill(t('chat.prefillWrite')) },
+  // Capability cards for the empty-state hub (2×2 grid, à la Sider/Monica).
+  const capabilities = [
+    {
+      icon: <ReadIcon size={18} />,
+      label: t('chat.summarize'),
+      desc: t('hub.capSummarizeDesc'),
+      run: () => prefill(t('chat.prefillSummarize')),
+    },
+    {
+      icon: <TranslateIcon size={18} />,
+      label: t('chat.translate'),
+      desc: t('hub.capTranslateDesc'),
+      run: () => prefill(t('chat.prefillTranslate')),
+    },
+    {
+      icon: <PencilIcon size={18} />,
+      label: t('chat.write'),
+      desc: t('hub.capWriteDesc'),
+      run: () => prefill(t('chat.prefillWrite')),
+    },
+    {
+      icon: <SkillIcon size={18} />,
+      label: t('chat.research'),
+      desc: t('hub.capResearchDesc'),
+      run: () => prefill(t('chat.prefillResearch')),
+    },
   ]
+
+  // Providers with a key or a fetched model list — shown as compare chips.
+  const configuredProviders = PROVIDERS.filter((p) => {
+    const c = settings.byProvider[p.id]
+    return c && (c.apiKey || c.models?.length)
+  })
 
   return (
     <div className="view view--chat">
       <div className="chat__log" ref={logRef}>
         {messages.length === 0 ? (
-          <div className="welcome">
-            <div className="welcome__brand">
-              <HeroMark size={56} />
+          <div className="hub">
+            <div className="hub__head">
+              <HeroMark size={44} />
+              <h3 className="hub__title">{t('hub.title')}</h3>
+              <p className="hub__sub">{t('hub.sub')}</p>
             </div>
-            <h3 className="welcome__title">{t('chat.welcomeTitle')}</h3>
-            <p className="welcome__sub">
-              {t('chat.welcomeSubPre')}
-              <b>@</b>
-              {t('chat.welcomeSubPost')}
-            </p>
-            <div className="quick">
-              {quickActions.map((q) => (
-                <button key={q.label} className="quick__card" onClick={q.run}>
-                  <span className="quick__icon">{q.icon}</span>
-                  <span className="quick__label">{q.label}</span>
+            {configuredProviders.length > 0 && (
+              <div className="hub__models">
+                {configuredProviders.map((p) => (
+                  <button
+                    key={p.id}
+                    className={`mchip${settings.provider === p.id ? ' mchip--on' : ''}`}
+                    title={p.label}
+                    onClick={() => onPickModel(p.id, settings.byProvider[p.id].model)}
+                  >
+                    {shortLabel(p.label)}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="hub__grid">
+              {capabilities.map((c) => (
+                <button key={c.label} className="cap" onClick={c.run}>
+                  <span className="cap__icon">{c.icon}</span>
+                  <span className="cap__text">
+                    <span className="cap__label">{c.label}</span>
+                    <span className="cap__desc">{c.desc}</span>
+                  </span>
                 </button>
               ))}
             </div>
@@ -360,8 +447,20 @@ export function ChatView({
       <div className="chat__foot">
         {error && <div className="chat__error">{error}</div>}
 
-        {attachments.length > 0 && (
+        {(showCurrentTab || attachments.length > 0) && (
           <div className="chips">
+            {showCurrentTab && currentTab && (
+              <span className="chip chip--current" key="__current" title={currentTab.url}>
+                @{hostOf(currentTab.url)}
+                <button
+                  className="chip__x"
+                  onClick={() => setDismissedUrl(currentTab.url)}
+                  aria-label="remove"
+                >
+                  <CloseIcon size={12} />
+                </button>
+              </span>
+            )}
             {attachments.map((a) => (
               <span className="chip" key={a.url} title={a.url}>
                 @{hostOf(a.url)}
@@ -411,6 +510,11 @@ export function ChatView({
             disabled={busy}
             onChange={(e) => onInputChange(e.target.value)}
             onKeyDown={(e) => {
+              // IME (Chinese/Japanese/…): while composing, Enter confirms the
+              // candidate — never send. `isComposing`/keyCode 229 mark that the
+              // keystroke belongs to the IME, so the first Enter confirms and
+              // only a subsequent Enter (composition ended) sends.
+              if (e.nativeEvent.isComposing || e.keyCode === 229) return
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault()
                 void send()

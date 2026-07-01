@@ -4,6 +4,7 @@ import { fetchModels, modelLabel } from '../../lib/models'
 import {
   baseUrlFor,
   PROVIDERS,
+  providerKind,
   type Language,
   type ProviderId,
   type Settings,
@@ -20,18 +21,22 @@ type Status =
   | { state: 'ok'; msg?: string }
   | { state: 'fail'; msg: string }
 
+type SettingsTab = 'provider' | 'language' | 'theme' | 'license'
+
 export function SettingsView({
   settings,
   onSave,
   onSetTheme,
   onSetLanguage,
   onDone,
+  initialTab = 'provider',
 }: {
   settings: Settings
   onSave: (next: Settings) => void
   onSetTheme: (mode: ThemeMode) => void
   onSetLanguage: (lang: Language) => void
   onDone: () => void
+  initialTab?: SettingsTab
 }) {
   const t = useT()
   const [provider, setProvider] = useState<ProviderId>(settings.provider)
@@ -41,7 +46,7 @@ export function SettingsView({
   const [fetchStatus, setFetchStatus] = useState<Status>({ state: 'idle' })
   const [test, setTest] = useState<Status>({ state: 'idle' })
   const [saved, setSaved] = useState(false)
-  const [tab, setTab] = useState<'provider' | 'language' | 'theme' | 'license'>('provider')
+  const [tab, setTab] = useState<SettingsTab>(initialTab)
 
   const meta = PROVIDERS.find((p) => p.id === provider)!
   const cfg = byProvider[provider]
@@ -151,13 +156,25 @@ export function SettingsView({
           <label className="field__label">{t('settings.provider')}</label>
           <FilterSelect
             value={provider}
+            search
             onChange={(v) => pickProvider(v as ProviderId)}
-            options={PROVIDERS.map((p) => ({
-              value: p.id,
-              label: p.label,
-              disabled: !p.enabled,
-              badge: p.enabled ? undefined : 'soon',
-            }))}
+            options={[...PROVIDERS]
+              // Subscription tiers (coding/plan) group above plain API.
+              .sort(
+                (a, b) =>
+                  (providerKind(a) === 'subscription' ? 0 : 1) -
+                  (providerKind(b) === 'subscription' ? 0 : 1),
+              )
+              .map((p) => ({
+                value: p.id,
+                label: p.label,
+                disabled: !p.enabled,
+                badge: p.enabled ? undefined : 'soon',
+                group:
+                  providerKind(p) === 'subscription'
+                    ? t('settings.groupSubscription')
+                    : t('settings.groupApi'),
+              }))}
           />
         </section>
 

@@ -9,6 +9,10 @@ type Entry = string | ((...args: never[]) => string)
 // Chinese is the source of truth for the key set; `en` must mirror it exactly.
 const zh = {
   // Rail / shell
+  'account.title': '账户',
+  'account.paid': '付费',
+  'account.free': '免费',
+  'account.trialDays': (n: number) => `剩${n}天`,
   'rail.new': '新对话',
   'rail.history': '历史',
   'rail.settings': '设置',
@@ -17,6 +21,8 @@ const zh = {
   // Settings
   'settings.title': '设置',
   'settings.provider': '服务商',
+  'settings.groupSubscription': '订阅',
+  'settings.groupApi': 'API',
   'settings.apiKey': 'API 密钥',
   'settings.getKey': '获取 key ↗',
   'settings.fetchBusy': '获取中…',
@@ -67,14 +73,23 @@ const zh = {
   'chat.summarize': '总结',
   'chat.translate': '翻译',
   'chat.write': '帮我写',
+  'chat.research': '研究',
   'chat.prefillSummarize': '请总结以下内容的要点：\n',
   'chat.prefillTranslate': '请翻译成中文：\n',
   'chat.prefillWrite': '帮我写一段：',
+  'chat.prefillResearch': '就以下主题做一次多来源研究，给出要点与结论：\n',
 
-  // Chat — welcome
+  // Chat — welcome / hub
   'chat.welcomeTitle': '有什么可以帮你？',
   'chat.welcomeSubPre': '问任何问题，或输入 ',
   'chat.welcomeSubPost': ' 引用当前页面作为上下文。',
+  'hub.title': '与浏览器对话',
+  'hub.sub': '你的 key · 直连 provider · 数据不出本机',
+  'hub.capSummarizeDesc': '总结当前页面或粘贴的内容',
+  'hub.capTranslateDesc': '翻译选中或粘贴的文本',
+  'hub.capWriteDesc': '起草邮件、文案、代码',
+  'hub.capResearchDesc': '多来源查证，给出结论',
+  'top.trust': '本地 · BYOK',
 
   // Chat — composer
   'chat.needKey': '请先在设置中填入 API 密钥。',
@@ -122,6 +137,10 @@ const zh = {
 export type TKey = keyof typeof zh
 
 const en: Record<TKey, Entry> = {
+  'account.title': 'Account',
+  'account.paid': 'Paid',
+  'account.free': 'Free',
+  'account.trialDays': (n: number) => `${n}d`,
   'rail.new': 'New chat',
   'rail.history': 'History',
   'rail.settings': 'Settings',
@@ -129,6 +148,8 @@ const en: Record<TKey, Entry> = {
 
   'settings.title': 'Settings',
   'settings.provider': 'Provider',
+  'settings.groupSubscription': 'Subscription',
+  'settings.groupApi': 'API',
   'settings.apiKey': 'API key',
   'settings.getKey': 'Get a key ↗',
   'settings.fetchBusy': 'Fetching…',
@@ -177,13 +198,22 @@ const en: Record<TKey, Entry> = {
   'chat.summarize': 'Summarize',
   'chat.translate': 'Translate',
   'chat.write': 'Write',
+  'chat.research': 'Research',
   'chat.prefillSummarize': 'Summarize the key points of the following:\n',
   'chat.prefillTranslate': 'Translate the following into English:\n',
   'chat.prefillWrite': 'Help me write: ',
+  'chat.prefillResearch': 'Research the following across multiple sources; give key points and a conclusion:\n',
 
   'chat.welcomeTitle': 'How can I help?',
   'chat.welcomeSubPre': 'Ask anything, or type ',
   'chat.welcomeSubPost': ' to reference the current page as context.',
+  'hub.title': 'Chat with browser',
+  'hub.sub': 'Your keys · direct to providers · data stays local',
+  'hub.capSummarizeDesc': 'Summarize this page or pasted content',
+  'hub.capTranslateDesc': 'Translate selected or pasted text',
+  'hub.capWriteDesc': 'Draft emails, copy, or code',
+  'hub.capResearchDesc': 'Cross-check sources, reach a conclusion',
+  'top.trust': 'Local · BYOK',
 
   'chat.needKey': 'Set your API key in Settings first.',
   'chat.toolQuote': 'Reference page (@)',

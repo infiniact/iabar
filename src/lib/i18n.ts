@@ -9,6 +9,10 @@ type Entry = string | ((...args: never[]) => string)
 // Chinese is the source of truth for the key set; `en` must mirror it exactly.
 const zh = {
   // Rail / shell
+  'account.title': '账户',
+  'account.paid': '付费',
+  'account.free': '免费',
+  'account.trialDays': (n: number) => `剩${n}天`,
   'rail.new': '新对话',
   'rail.history': '历史',
   'rail.settings': '设置',
@@ -133,6 +137,10 @@ const zh = {
 export type TKey = keyof typeof zh
 
 const en: Record<TKey, Entry> = {
+  'account.title': 'Account',
+  'account.paid': 'Paid',
+  'account.free': 'Free',
+  'account.trialDays': (n: number) => `${n}d`,
   'rail.new': 'New chat',
   'rail.history': 'History',
   'rail.settings': 'Settings',

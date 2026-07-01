@@ -510,6 +510,11 @@ export function ChatView({
             disabled={busy}
             onChange={(e) => onInputChange(e.target.value)}
             onKeyDown={(e) => {
+              // IME (Chinese/Japanese/…): while composing, Enter confirms the
+              // candidate — never send. `isComposing`/keyCode 229 mark that the
+              // keystroke belongs to the IME, so the first Enter confirms and
+              // only a subsequent Enter (composition ended) sends.
+              if (e.nativeEvent.isComposing || e.keyCode === 229) return
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault()
                 void send()

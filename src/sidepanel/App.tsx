@@ -21,6 +21,7 @@ import { ChatView } from './views/Chat'
 import { HistoryView } from './views/History'
 import { SettingsView } from './views/Settings'
 import { CloseIcon, HistoryIcon, PlusIcon, SettingsIcon } from './icons'
+import { RailAccount } from './RailAccount'
 import { useClickOutside } from './useClickOutside'
 
 type View = 'chat' | 'history'
@@ -35,7 +36,15 @@ export function App() {
   const [view, setView] = useState<View>('chat')
   // Settings is an overlay popup over the chat (closes on outside click / Esc).
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [settingsTab, setSettingsTab] = useState<'provider' | 'language' | 'theme' | 'license'>(
+    'provider',
+  )
   const settingsRef = useRef<HTMLDivElement>(null)
+
+  function openSettings(tab: 'provider' | 'language' | 'theme' | 'license' = 'provider') {
+    setSettingsTab(tab)
+    setSettingsOpen(true)
+  }
 
   useTheme(settings.theme)
 
@@ -175,6 +184,7 @@ export function App() {
               onSetTheme={onSetTheme}
               onSetLanguage={onSetLanguage}
               onDone={() => setSettingsOpen(false)}
+              initialTab={settingsTab}
             />
           </div>
         </div>
@@ -197,10 +207,11 @@ export function App() {
           <button
             className={`rail__btn${settingsOpen ? ' rail__btn--on' : ''}`}
             title={t('rail.settings')}
-            onClick={() => setSettingsOpen(true)}
+            onClick={() => openSettings('provider')}
           >
             <SettingsIcon />
           </button>
+          {boot === 'ready' && <RailAccount onOpen={() => openSettings('license')} />}
         </div>
       </nav>
     </div>

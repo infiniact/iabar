@@ -1,6 +1,6 @@
 {
   "name": "iabar",
-  "version": "0.1.16",
+  "version": "0.1.19",
   "description": "Your keys, your provider, your data — never ours.",
   "type": "module",
   "private": true,

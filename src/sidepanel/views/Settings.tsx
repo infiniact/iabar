@@ -21,18 +21,22 @@ type Status =
   | { state: 'ok'; msg?: string }
   | { state: 'fail'; msg: string }
 
+type SettingsTab = 'provider' | 'language' | 'theme' | 'license'
+
 export function SettingsView({
   settings,
   onSave,
   onSetTheme,
   onSetLanguage,
   onDone,
+  initialTab = 'provider',
 }: {
   settings: Settings
   onSave: (next: Settings) => void
   onSetTheme: (mode: ThemeMode) => void
   onSetLanguage: (lang: Language) => void
   onDone: () => void
+  initialTab?: SettingsTab
 }) {
   const t = useT()
   const [provider, setProvider] = useState<ProviderId>(settings.provider)
@@ -42,7 +46,7 @@ export function SettingsView({
   const [fetchStatus, setFetchStatus] = useState<Status>({ state: 'idle' })
   const [test, setTest] = useState<Status>({ state: 'idle' })
   const [saved, setSaved] = useState(false)
-  const [tab, setTab] = useState<'provider' | 'language' | 'theme' | 'license'>('provider')
+  const [tab, setTab] = useState<SettingsTab>(initialTab)
 
   const meta = PROVIDERS.find((p) => p.id === provider)!
   const cfg = byProvider[provider]

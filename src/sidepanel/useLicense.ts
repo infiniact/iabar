@@ -2,8 +2,10 @@ import { useCallback, useEffect, useState } from 'react'
 import {
   activate as kmsActivate,
   buildCheckoutUrl,
+  buildEmbeddedCheckoutUrl,
   getLicenseState,
   getSession,
+  KMS_ORIGIN,
   logout as kmsLogout,
   needsRenew,
   rebind as kmsRebind,
@@ -17,32 +19,39 @@ import {
   type Session,
 } from '../lib/license/client'
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+
 /** License state + account session + actions. `state`/`session` are null until
  *  the first check resolves. A best-effort renew runs when the cached lease is
  *  getting old (silently ignored when offline). */
 export function useLicense() {
   const [state, setState] = useState<LicenseState | null>(null)
   const [session, setSession] = useState<Session | null>(null)
+  // Non-null while the embedded-checkout iframe should be shown (its src URL).
+  const [checkout, setCheckout] = useState<string | null>(null)
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (): Promise<LicenseState> => {
     const sess = await getSession()
     setSession(sess)
     if (sess.loggedIn) {
       // Signed-in account: re-fetch the entitlement from the session — this is
       // what upgrades trial → paid after a Stripe purchase, with no extra email.
-      setState(await syncSession())
-      return
+      const s = await syncSession()
+      setState(s)
+      return s
     }
     // Device (license-key) activation: offline-verify, renew by key if aging.
-    const s = await getLicenseState()
+    let s = await getLicenseState()
     setState(s)
     if (s.status === 'active' && s.claims && needsRenew(s.claims)) {
       try {
-        setState(await renew())
+        s = await renew()
+        setState(s)
       } catch {
         // Offline / server down — the cached token is still valid within TTL.
       }
     }
+    return s
   }, [])
 
   useEffect(() => {
@@ -52,6 +61,25 @@ export function useLicense() {
     const onFocus = () => void refresh()
     window.addEventListener('focus', onFocus)
     return () => window.removeEventListener('focus', onFocus)
+  }, [refresh])
+
+  // Auto-refresh on embedded-checkout completion. iakms postMessages us when the
+  // Stripe payment succeeds; we close the iframe and re-sync. The message is only
+  // a *trigger* — the entitlement itself comes from the signed token iakms issues
+  // after its webhook binds the license, so a forged message just yields "still
+  // unlicensed". A short retry covers the webhook-vs-return race.
+  useEffect(() => {
+    async function onMessage(e: MessageEvent) {
+      if (e.origin !== KMS_ORIGIN || e.data?.type !== 'iakms:checkout-complete') return
+      setCheckout(null)
+      for (let i = 0; i < 4; i++) {
+        const s = await refresh()
+        if (s.status === 'active') break
+        await sleep(1500)
+      }
+    }
+    window.addEventListener('message', onMessage)
+    return () => window.removeEventListener('message', onMessage)
   }, [refresh])
 
   const activate = useCallback(async (key: string) => {
@@ -93,18 +121,28 @@ export function useLicense() {
     setState(await getLicenseState())
   }, [])
 
-  /** Open Stripe checkout in a new tab (email prefilled). The return-to-panel
-   *  focus listener re-syncs, so the purchased license is picked up on return. */
+  /** Open embedded Stripe checkout in an in-panel iframe (email prefilled). On
+   *  success iakms postMessages us and the listener above re-syncs the license. */
   const buy = useCallback(async () => {
+    setCheckout(await buildEmbeddedCheckoutUrl())
+  }, [])
+
+  const closeCheckout = useCallback(() => setCheckout(null), [])
+
+  /** Fallback: hosted checkout in a NEW TAB (when the iframe can't load — CSP,
+   *  network, embed endpoint down). Closes the iframe; the window `focus`
+   *  listener picks the purchase up on return, as before. */
+  const buyInTab = useCallback(async () => {
+    setCheckout(null)
     const url = await buildCheckoutUrl()
     if (chrome.tabs?.create) chrome.tabs.create({ url })
     else window.open(url, '_blank', 'noopener')
-    return url
   }, [])
 
   return {
     state,
     session,
+    checkout,
     refresh,
     activate,
     rebind,
@@ -114,5 +152,7 @@ export function useLicense() {
     verifyEmailCode,
     logout,
     buy,
+    buyInTab,
+    closeCheckout,
   }
 }

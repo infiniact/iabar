@@ -5,7 +5,7 @@ import { modelLabel } from '../../lib/models'
 import { recordServerDate } from '../../lib/license/trusted-time'
 import {
   activeConfig,
-  baseUrlFor,
+  effectiveBaseUrl,
   PROVIDERS,
   type Conversation,
   type ProviderId,
@@ -239,7 +239,7 @@ export function ChatView({
         {
           apiKey: cfg.apiKey,
           provider: settings.provider,
-          baseUrl: baseUrlFor(settings.provider),
+          baseUrl: effectiveBaseUrl(settings),
           model: cfg.model,
           system: SYSTEM_BASE,
           history,

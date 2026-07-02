@@ -214,6 +214,20 @@ body {
   overflow: hidden;
   animation: slideup 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
+/* Checkout iframe host: taller, so Stripe Embedded Checkout has vertical room. */
+.modal__panel--checkout {
+  height: 88vh;
+}
+.checkout__frame {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: #fff;
+}
+.checkout__fallback {
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
 .modal__close {
   position: absolute;
   top: 12px;
@@ -503,6 +517,13 @@ select.input {
 }
 .fselect__opt--on {
   color: var(--accent);
+}
+/* Free-text "use \"xxx\"" row (allowCustom): accented + divider so it reads as
+   an action, not a match. */
+.fselect__opt--create {
+  color: var(--accent);
+  border-bottom: 1px solid var(--border);
+  border-radius: 7px 7px 0 0;
 }
 .fselect__opt:disabled {
   opacity: 0.5;

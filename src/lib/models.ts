@@ -23,14 +23,20 @@ export function modelLabel(id: string): string {
   return slash === -1 ? cleaned : cleaned.slice(slash + 1)
 }
 
-export async function fetchModels(provider: ProviderId, apiKey: string): Promise<string[]> {
+export async function fetchModels(
+  provider: ProviderId,
+  apiKey: string,
+  baseOverride?: string,
+): Promise<string[]> {
   const key = apiKey.trim()
   if (!key) throw new Error('Enter an API key first.')
 
   const meta = PROVIDERS.find((p) => p.id === provider)
-  if (!meta || !meta.base) throw new Error('Model listing is not supported for this provider yet.')
+  if (!meta) throw new Error('Model listing is not supported for this provider yet.')
+  const base = baseOverride?.trim() || meta.base
+  if (!base) throw new Error('Model listing is not supported for this provider yet.')
 
-  const url = `${meta.base.replace(/\/+$/, '')}/models`
+  const url = `${base.replace(/\/+$/, '')}/models`
   const headers: Record<string, string> =
     meta.auth === 'anthropic'
       ? {

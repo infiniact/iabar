@@ -20,6 +20,18 @@ export const KMS_BASE_URL = 'https://iakms.infiniact.com'
 // (A plain tab navigation — not an extension fetch — so it needs no permission.)
 export const CHECKOUT_URL = `${KMS_BASE_URL}/v1/checkout`
 
+// The plan checkout opens: `perpetual` = one-time buy-out. This is the product's
+// only paid tier by design — one-time-pay is a pillar of the sovereignty moat
+// (no subscription lock-in). iakms maps it to the corresponding Stripe price.
+export const CHECKOUT_POLICY = 'perpetual'
+
+// Embedded-checkout page on iakms. Rendered INSIDE an iframe in the side panel:
+// this iakms page loads Stripe.js and mounts Stripe Embedded Checkout on its own
+// origin (MV3 forbids loading js.stripe.com in the extension page itself, and
+// Stripe's hosted Checkout refuses to be framed — so we frame our own page, which
+// frames Stripe). On completion it postMessages the extension to re-sync.
+export const CHECKOUT_EMBED_URL = `${KMS_BASE_URL}/v1/checkout/embed`
+
 export interface EmbeddedPubKey {
   key_version: number
   /** SEC1 uncompressed point (65 bytes, leading 0x04), base64url. */

@@ -3,6 +3,7 @@ import { useT } from '../../lib/i18n'
 import { trustedNow } from '../../lib/license/trusted-time'
 import { GoogleIcon, HeroMark, LogoutIcon, UserIcon } from '../icons'
 import { useLicense } from '../useLicense'
+import { CheckoutModal } from './CheckoutModal'
 import { LicenseSection } from './LicenseSection'
 
 const errText = (e: unknown) => (e instanceof Error ? e.message : String(e))
@@ -51,6 +52,13 @@ export function AccountModal() {
         ))}
       </div>
       {tab === 'license' ? <LicenseSection lic={lic} /> : <UsagePanel lic={lic} />}
+      {lic.checkout && (
+        <CheckoutModal
+          url={lic.checkout}
+          onClose={lic.closeCheckout}
+          onFallback={() => void lic.buyInTab()}
+        />
+      )}
     </div>
   )
 }

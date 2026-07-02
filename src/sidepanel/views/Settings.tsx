@@ -5,6 +5,7 @@ import {
   baseUrlFor,
   PROVIDERS,
   providerKind,
+  resolveBaseUrl,
   type Language,
   type ProviderId,
   type Settings,
@@ -88,11 +89,17 @@ export function SettingsView({
   const cfg = byProvider[provider]
   const apiKey = cfg.apiKey
   const model = cfg.model
-  // The "checked" model list lives in the provider config so it persists.
+  const baseUrl = cfg.baseUrl ?? ''
+  // The "checked" model list lives in the provider config so it persists. The
+  // current model is always listed (it may be a hand-entered id not in the fetch).
   const models = cfg.models ?? []
-  const modelOptions = models.length ? models : [model || meta.defaultModel]
+  const modelOptions = Array.from(
+    new Set([model, ...models, meta.defaultModel].filter(Boolean)),
+  )
 
-  function patchCfg(patch: Partial<{ apiKey: string; model: string; models: string[] }>) {
+  function patchCfg(
+    patch: Partial<{ apiKey: string; model: string; models: string[]; baseUrl: string }>,
+  ) {
     setByProvider((b) => ({ ...b, [provider]: { ...b[provider], ...patch } }))
   }
 
@@ -113,7 +120,7 @@ export function SettingsView({
     }
     setFetchStatus({ state: 'busy' })
     try {
-      const ids = await fetchModels(provider, apiKey)
+      const ids = await fetchModels(provider, apiKey, baseUrl)
       const nextModel = ids.includes(model) ? model : ids[0]
       // Persist the full list immediately so the chat composer's picker sees it
       // without needing an explicit Save (closing the overlay would drop it).
@@ -140,7 +147,7 @@ export function SettingsView({
       await providerChat({
         apiKey: apiKey.trim(),
         provider,
-        baseUrl: baseUrlFor(provider),
+        baseUrl: resolveBaseUrl(provider, cfg),
         model,
         messages: [{ role: 'user', content: 'ping' }],
         maxTokens: 8,
@@ -214,6 +221,26 @@ export function SettingsView({
           />
         </section>
 
+        {/* Base URL — defaults to the catalog value; editable for endpoints that
+            embed a per-account segment (e.g. 通义 Coding's workspace id) or for
+            self-hosted / proxy bases. */}
+        <section className="field">
+          <label className="field__label">{t('settings.baseUrl')}</label>
+          <input
+            className="input"
+            placeholder={baseUrlFor(provider)}
+            value={baseUrl}
+            spellCheck={false}
+            onChange={(e) => {
+              // Endpoint changed → drop the fetched list (it belonged to the old base).
+              patchCfg({ baseUrl: e.target.value, models: [] })
+              setFetchStatus({ state: 'idle' })
+              setTest({ state: 'idle' })
+            }}
+          />
+          <span className="field__note">{t('settings.baseUrlNote')}</span>
+        </section>
+
         {/* 1. API key first */}
         <section className="field">
           <div className="field__row">
@@ -271,6 +298,7 @@ export function SettingsView({
             <FilterSelect
               value={model}
               search
+              allowCustom
               onChange={(v) => patchCfg({ model: v })}
               options={modelOptions.map((m) => ({ value: m, label: modelLabel(m) }))}
             />

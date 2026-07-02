@@ -8,6 +8,8 @@
 
 import {
   APP_ID,
+  CHECKOUT_EMBED_URL,
+  CHECKOUT_POLICY,
   CHECKOUT_URL,
   DEVICE_NAME,
   EMBEDDED_PUBKEYS,
@@ -335,10 +337,27 @@ export async function syncSession(): Promise<LicenseState> {
  *  prefilled. iakms creates the Checkout Session and redirects to Stripe. */
 export async function buildCheckoutUrl(): Promise<string> {
   const { email } = await loadCache()
-  const q = new URLSearchParams({ app_id: APP_ID })
+  const q = new URLSearchParams({ app_id: APP_ID, policy: CHECKOUT_POLICY })
   if (email) q.set('email', email)
   return `${CHECKOUT_URL}?${q.toString()}`
 }
+
+/** URL for the iakms embedded-checkout page, framed inside the side panel. We
+ *  pass our own extension origin so iakms can target its completion postMessage
+ *  back to us (the receiver still verifies the message *came from* iakms). */
+export async function buildEmbeddedCheckoutUrl(): Promise<string> {
+  const { email } = await loadCache()
+  const q = new URLSearchParams({
+    app_id: APP_ID,
+    policy: CHECKOUT_POLICY,
+    origin: location.origin,
+  })
+  if (email) q.set('email', email)
+  return `${CHECKOUT_EMBED_URL}?${q.toString()}`
+}
+
+/** iakms origin — the only sender we trust for checkout-completion messages. */
+export const KMS_ORIGIN = KMS_BASE_URL
 
 /**
  * Start (or resume) the free trial for this device. The server mints a

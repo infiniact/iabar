@@ -31,6 +31,7 @@ export function FilterSelect({
   variant = 'input',
   leading,
   menuAlign = 'left',
+  allowCustom = false,
 }: {
   value: string
   options: SelectOption[]
@@ -42,6 +43,10 @@ export function FilterSelect({
   variant?: 'input' | 'chip'
   leading?: ReactNode
   menuAlign?: 'left' | 'right'
+  /** Let the user commit the typed query as the value even when it matches no
+   *  option — for fields where valid values aren't fully enumerable (e.g. a
+   *  model id the provider's `/models` doesn't list but still accepts). */
+  allowCustom?: boolean
 }) {
   const t = useT()
   const [open, setOpen] = useState(false)
@@ -56,6 +61,13 @@ export function FilterSelect({
     showSearch && query.trim()
       ? options.filter((o) => o.label.toLowerCase().includes(query.trim().toLowerCase()))
       : options
+  // Free-text commit: a non-empty query that isn't already an option value.
+  const q = query.trim()
+  const canCreate = allowCustom && q.length > 0 && !options.some((o) => o.value === q)
+  const commitCustom = () => {
+    onChange(q)
+    setOpen(false)
+  }
 
   // Click/touch outside → close (shared with every other popup).
   useClickOutside(ref, () => setOpen(false), open)
@@ -78,10 +90,16 @@ export function FilterSelect({
       <input
         ref={searchRef}
         className="fselect__search-input"
-        placeholder={t('fselect.search')}
+        placeholder={allowCustom ? t('fselect.searchOrType') : t('fselect.search')}
         value={query}
         spellCheck={false}
         onChange={(e) => setQuery(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && canCreate) {
+            e.preventDefault()
+            commitCustom()
+          }
+        }}
       />
     </div>
   ) : null
@@ -97,7 +115,7 @@ export function FilterSelect({
         onClick={() => setOpen((o) => !o)}
       >
         {leading && <span className="fselect__leading">{leading}</span>}
-        <span className="fselect__value">{current?.label ?? placeholder ?? ''}</span>
+        <span className="fselect__value">{current?.label ?? (value || placeholder) ?? ''}</span>
         <span className="fselect__chev">
           <ChevronDownIcon size={variant === 'chip' ? 12 : 16} />
         </span>
@@ -110,7 +128,20 @@ export function FilterSelect({
         >
           {showSearch && !up && searchRow}
           <ul className="fselect__list">
-            {filtered.length === 0 && <li className="fselect__empty">{t('fselect.empty')}</li>}
+            {canCreate && (
+              <li>
+                <button
+                  type="button"
+                  className="fselect__opt fselect__opt--create"
+                  onClick={commitCustom}
+                >
+                  <span className="fselect__opt-label">{t('fselect.use', q as never)}</span>
+                </button>
+              </li>
+            )}
+            {filtered.length === 0 && !canCreate && (
+              <li className="fselect__empty">{t('fselect.empty')}</li>
+            )}
             {filtered.map((o, i) => (
               <Fragment key={o.value}>
                 {o.group && o.group !== filtered[i - 1]?.group && (

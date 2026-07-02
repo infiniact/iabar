@@ -84,9 +84,10 @@ export default defineManifest({
   optional_host_permissions: ['*://*/*'],
 
   // 'wasm-unsafe-eval' is required to instantiate the AI agent wasm module in
-  // the side panel page.
+  // the side panel page. `frame-src` allows only the iakms embedded-checkout page
+  // to be framed (it in turn frames Stripe on its own origin — see CheckoutModal).
   content_security_policy: {
     extension_pages:
-      "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'",
+      "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; frame-src https://iakms.infiniact.com",
   },
 })

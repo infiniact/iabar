@@ -46,6 +46,8 @@ const zh = {
   'settings.provider': '服务商',
   'settings.groupSubscription': '订阅',
   'settings.groupApi': 'API',
+  'settings.baseUrl': '接口地址 (Base URL)',
+  'settings.baseUrlNote': '留空用默认。若接口把账号段拼进地址(如通义 Coding 的 workspace id),填含该段的完整地址。',
   'settings.apiKey': 'API 密钥',
   'settings.getKey': '获取 key ↗',
   'settings.fetchBusy': '获取中…',
@@ -58,7 +60,7 @@ const zh = {
   'settings.testFail': '✗ 失败',
   'settings.test': '测试',
   'settings.needKey': '请先输入 API 密钥。',
-  'settings.pickModelNote': '先在上方获取模型列表，然后选择一个。',
+  'settings.pickModelNote': '先在上方获取模型列表后选择，或直接输入模型 ID。',
   'settings.theme': '主题',
   'settings.themeSystem': '跟随系统',
   'settings.themeLight': '浅色',
@@ -98,6 +100,8 @@ const zh = {
   'license.unbinding': '解绑中…',
   'license.startTrial': '开始免费试用',
   'license.starting': '开通中…',
+  'license.checkoutTitle': '完成购买',
+  'license.checkoutFallback': '打不开？在新标签页购买 ↗',
   'license.trialBadge': '试用',
   'license.trialDaysLeft': (n: number) => `免费试用 · 剩余 ${n} 天`,
   'license.trialEnded': '免费试用已结束',
@@ -165,6 +169,8 @@ const zh = {
 
   // Dropdown (FilterSelect)
   'fselect.search': '搜索…',
+  'fselect.searchOrType': '搜索或输入…',
+  'fselect.use': (q: string) => `使用 “${q}”`,
   'fselect.empty': '无匹配',
 }
 
@@ -205,6 +211,8 @@ const en: Record<TKey, Entry> = {
 
   'settings.title': 'Settings',
   'settings.provider': 'Provider',
+  'settings.baseUrl': 'Base URL',
+  'settings.baseUrlNote': "Blank uses the default. If the endpoint bakes an account segment into the URL (e.g. 通义 Coding's workspace id), paste the full address.",
   'settings.groupSubscription': 'Subscription',
   'settings.groupApi': 'API',
   'settings.apiKey': 'API key',
@@ -219,7 +227,7 @@ const en: Record<TKey, Entry> = {
   'settings.testFail': '✗ Failed',
   'settings.test': 'Test',
   'settings.needKey': 'Enter an API key first.',
-  'settings.pickModelNote': 'Fetch the model list above, then pick one.',
+  'settings.pickModelNote': 'Fetch the list above and pick one, or just type a model id.',
   'settings.theme': 'Theme',
   'settings.themeSystem': 'System',
   'settings.themeLight': 'Light',
@@ -258,6 +266,8 @@ const en: Record<TKey, Entry> = {
   'license.unbinding': 'Unbinding…',
   'license.startTrial': 'Start free trial',
   'license.starting': 'Starting…',
+  'license.checkoutTitle': 'Complete purchase',
+  'license.checkoutFallback': 'Not loading? Buy in a new tab ↗',
   'license.trialBadge': 'Trial',
   'license.trialDaysLeft': (n: number) => `Free trial · ${n} days left`,
   'license.trialEnded': 'Free trial ended',
@@ -320,6 +330,8 @@ const en: Record<TKey, Entry> = {
   'time.dAgo': (d: number) => `${d}d ago`,
 
   'fselect.search': 'Search…',
+  'fselect.searchOrType': 'Search or type…',
+  'fselect.use': (q: string) => `Use “${q}”`,
   'fselect.empty': 'No matches',
 }
 

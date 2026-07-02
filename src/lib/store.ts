@@ -225,6 +225,11 @@ export interface ProviderConfig {
   model: string
   /** Models fetched ("checked") for this provider — powers the inline picker. */
   models?: string[]
+  /** User override of the OpenAI-compatible base URL. Empty/undefined → the
+   *  catalog default (`baseUrlFor`). Needed when a provider's endpoint embeds a
+   *  per-account segment (e.g. 通义 Coding prepends a workspace id), or for
+   *  self-hosted / proxy bases. Keeps N1 (中立底座) honest: any endpoint works. */
+  baseUrl?: string
 }
 
 export interface Settings {
@@ -254,6 +259,17 @@ export const DEFAULT_SETTINGS: Settings = {
 export function activeConfig(s: Settings): ProviderConfig {
   const meta = PROVIDERS.find((p) => p.id === s.provider)
   return s.byProvider[s.provider] ?? { apiKey: '', model: meta?.defaultModel ?? '' }
+}
+
+/** The base URL actually used for a provider: the per-provider user override
+ *  when set, else the catalog default. This is what the wasm chat call gets. */
+export function resolveBaseUrl(id: ProviderId, cfg?: ProviderConfig): string {
+  return cfg?.baseUrl?.trim() || baseUrlFor(id)
+}
+
+/** The active provider's effective base URL (override-aware). */
+export function effectiveBaseUrl(s: Settings): string {
+  return resolveBaseUrl(s.provider, activeConfig(s))
 }
 
 const SETTINGS_KEY = 'iabar.settings'

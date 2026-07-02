@@ -7,8 +7,9 @@ import { useLicense } from './useLicense'
  *  (Paid / Free · N days left for a trial). Clicking opens the License tab. */
 export function RailAccount({ onOpen }: { onOpen: () => void }) {
   const t = useT()
-  const { state } = useLicense()
+  const { state, session } = useLicense()
 
+  const loggedIn = Boolean(session?.loggedIn)
   const active = state?.status === 'active'
   const trial = active && state?.claims?.policy === 'trial'
   const paid = active && !trial
@@ -22,9 +23,16 @@ export function RailAccount({ onOpen }: { onOpen: () => void }) {
         )
       : 0
 
+  // Signed-in → the button carries the account (email tooltip + active state);
+  // the plan tag + days then read as "account + free days / license". Signed-out
+  // still shows free days, but they're the device-matched 7-day trial only.
   return (
     <div className="rail__account">
-      <button className="rail__btn" title={t('account.title')} onClick={onOpen}>
+      <button
+        className={`rail__btn${loggedIn ? ' rail__btn--on' : ''}`}
+        title={loggedIn ? (session?.email ?? t('account.title')) : t('account.title')}
+        onClick={onOpen}
+      >
         <UserIcon />
       </button>
       <div className="rail__plan">

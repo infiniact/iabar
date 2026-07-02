@@ -225,7 +225,22 @@ export function SettingsView({
             embed a per-account segment (e.g. 通义 Coding's workspace id) or for
             self-hosted / proxy bases. */}
         <section className="field">
-          <label className="field__label">{t('settings.baseUrl')}</label>
+          <div className="field__row">
+            <label className="field__label">{t('settings.baseUrl')}</label>
+            {baseUrl.trim() !== '' && (
+              <button
+                className="field__hint-link"
+                onClick={() => {
+                  // Back to the catalog endpoint → the fetched list is stale too.
+                  patchCfg({ baseUrl: '', models: [] })
+                  setFetchStatus({ state: 'idle' })
+                  setTest({ state: 'idle' })
+                }}
+              >
+                {t('settings.resetDefault')}
+              </button>
+            )}
+          </div>
           <input
             className="input"
             placeholder={baseUrlFor(provider)}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   activate as kmsActivate,
   buildCheckoutUrl,
@@ -29,6 +29,9 @@ export function useLicense() {
   const [session, setSession] = useState<Session | null>(null)
   // Non-null while the embedded-checkout iframe should be shown (its src URL).
   const [checkout, setCheckout] = useState<string | null>(null)
+  // Try the silent device trial at most once per mount (avoids re-firing on
+  // every window focus, and never re-calls once it's granted).
+  const trialTried = useRef(false)
 
   const refresh = useCallback(async (): Promise<LicenseState> => {
     const sess = await getSession()
@@ -42,6 +45,18 @@ export function useLicense() {
     }
     // Device (license-key) activation: offline-verify, renew by key if aging.
     let s = await getLicenseState()
+    // Anonymous first run: silently establish the device-fingerprint trial so a
+    // never-logged-in user still sees their free days (7-day device trial, no
+    // login, no gesture — just `POST /v1/trial`). Only when truly unlicensed
+    // (an expired/spent trial reads 'expired', not 'unlicensed', and won't retry).
+    if (s.status === 'unlicensed' && !trialTried.current) {
+      trialTried.current = true
+      try {
+        s = await kmsStartTrial()
+      } catch {
+        // Offline, or the device's trial is already spent — leave unlicensed.
+      }
+    }
     setState(s)
     if (s.status === 'active' && s.claims && needsRenew(s.claims)) {
       try {
